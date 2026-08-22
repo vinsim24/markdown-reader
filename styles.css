@@ -469,6 +469,33 @@ select:focus-visible {
   padding: 0;
   font-size: inherit;
 }
+.mermaid-diagram {
+  margin: 28px 0;
+  padding: 24px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  text-align: center;
+}
+.mermaid-canvas svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+.mermaid-diagram > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.mermaid-error {
+  color: var(--text);
+  text-align: left;
+}
+.mermaid-error pre {
+  margin-bottom: 0;
+}
 .code-light .reader pre {
   background: #f0f2f2;
   color: #18201d;

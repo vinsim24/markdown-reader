@@ -14,3 +14,9 @@
 ```ts
 const localOnly = true;
 ```
+
+```mermaid
+flowchart LR
+  File[Local file] --> Reader[Markdown Reader]
+  Reader --> Screen[Private reading view]
+```

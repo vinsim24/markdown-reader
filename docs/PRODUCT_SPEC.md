@@ -40,7 +40,7 @@
 - [x] Reading preferences stored locally
 - [x] External links open safely in another tab
 - [x] Relative Markdown links and images resolve inside a granted folder
-- [x] Tables, task lists, ordered lists, blockquotes, images, and code blocks
+- [x] Tables, task lists, ordered lists, blockquotes, images, code blocks, and Mermaid diagrams
 
 ## Themes
 

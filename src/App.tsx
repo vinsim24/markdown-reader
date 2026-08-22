@@ -1,7 +1,9 @@
 import type { Element, Root, RootContent, Text } from 'hast';
 import {
   type CSSProperties,
+  isValidElement,
   type MouseEvent as ReactMouseEvent,
+  type ReactNode,
   useEffect,
   useMemo,
   useRef,
@@ -12,6 +14,7 @@ import rehypeSanitize from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
 import FileTree from './components/FileTree';
 import LocalImage from './components/LocalImage';
+import MermaidDiagram from './components/MermaidDiagram';
 import {
   type FolderWorkspace,
   pickDirectory,
@@ -618,6 +621,26 @@ export default function App() {
                     [rehypeHighlight, search],
                   ]}
                   components={{
+                    pre: ({ children }) => {
+                      const code = isValidElement<{
+                        className?: string;
+                        children?: ReactNode;
+                      }>(children)
+                        ? children
+                        : null;
+                      if (code?.props.className === 'language-mermaid') {
+                        return (
+                          <MermaidDiagram
+                            source={String(code.props.children).replace(
+                              /\n$/,
+                              ''
+                            )}
+                            theme={preferences.theme}
+                          />
+                        );
+                      }
+                      return <pre>{children}</pre>;
+                    },
                     a: ({ href = '', children, ...props }) => {
                       if (href.startsWith('#'))
                         return (

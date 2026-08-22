@@ -7,7 +7,7 @@ A private, responsive reader for comfortable long-form Markdown. Documents are p
 - Open individual `.md` and `.markdown` files, or drag a file into the page.
 - Explicitly open a local folder and navigate a recursive Markdown file tree.
 - Follow safe relative Markdown links and load relative images from the granted folder.
-- Render sanitized GitHub-flavored Markdown, including tables, task lists, blockquotes, images, and code blocks.
+- Render sanitized GitHub-flavored Markdown, including tables, task lists, blockquotes, images, code blocks, and Mermaid diagrams.
 - Search with match highlighting, current-section navigation, and Focus mode.
 - Persist validated reading preferences locally: themes, fonts, size, width, line height, custom colors, and code theme.
 - Responsive desktop, tablet, and mobile layouts with accessible keyboard/dialog behavior.
@@ -17,6 +17,8 @@ A private, responsive reader for comfortable long-form Markdown. Documents are p
 Markdown contents never leave the browser. File and folder access begins only after an explicit picker action or file drop. Folder handles, absolute paths, and document contents are not persisted. Folder permission lasts only for the current browser session, and Docker does not mount or scan the user’s home directory.
 
 Chrome and Edge are the primary desktop browsers because they support `showDirectoryPicker()`. Other modern browsers receive a directory-input fallback. Native permission prompts are intentionally not automated.
+
+Mermaid diagrams render locally from fenced `mermaid` code blocks. The renderer is loaded only when needed and runs with Mermaid's strict security mode; invalid diagrams show their source with a clear error instead of breaking the document.
 
 Known limitations:
 

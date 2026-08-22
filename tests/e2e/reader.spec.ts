@@ -69,6 +69,10 @@ test('opens the directory fallback and resolves local content', async ({
   await expect(
     page.getByRole('link', { name: 'External reference' })
   ).toHaveAttribute('rel', 'noopener noreferrer');
+  await expect(page.locator('.mermaid-diagram svg')).toBeVisible();
+  await expect(page.locator('.mermaid-diagram')).not.toContainText(
+    'flowchart LR'
+  );
   await page.getByRole('button', { name: 'Chapter details' }).click();
   await expect(page).toHaveURL(/#details$/);
 });
