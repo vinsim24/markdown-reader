@@ -12,3 +12,9 @@ Before making changes, read this file and `docs/PRODUCT_SPEC.md`.
 - Explain important tradeoffs briefly. Do not ask the user to copy files or apply individual changes manually.
 - Do not commit or push without explicit user approval.
 
+## Milestone Workflow
+
+- Work on the current `main` branch; do not create feature branches, pull requests, tags, or releases unless explicitly requested.
+- Do not rewrite Git history. Stop if unexpected user changes conflict with the task.
+- For an approved multi-phase milestone, make one focused commit after each phase passes its checks and push `main` after each commit.
+- Continue approved phases automatically; ask only when permissions, credentials, or a material product decision block progress.
