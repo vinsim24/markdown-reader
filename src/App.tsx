@@ -1,6 +1,5 @@
 import {
   type CSSProperties,
-  type ReactNode,
   useEffect,
   useMemo,
   useRef,
@@ -19,9 +18,14 @@ import {
   workspaceFromFileList,
 } from './lib/fileAccess';
 import { isExternalUrl, resolveMarkdownTarget } from './lib/paths';
-
-type Theme = 'light' | 'dark' | 'sepia' | 'mono' | 'cappuccino' | 'contrast';
-type Font = 'inter' | 'source-serif' | 'literata' | 'atkinson' | 'jetbrains';
+import { extractHeadings, rehypeHeadingIds } from './lib/headings';
+import {
+  defaultPreferences,
+  type Font,
+  loadPreferences,
+  savePreferences,
+  type Theme,
+} from './lib/preferences';
 
 const sample = `# Payment System
 
@@ -60,36 +64,12 @@ CREATED → AUTHORIZED → CAPTURED
 \`\`\`
 `;
 
-function slug(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
-function getText(children: ReactNode): string {
-  if (typeof children === 'string' || typeof children === 'number') {
-    return String(children);
-  }
-  if (Array.isArray(children)) return children.map(getText).join('');
-  if (children && typeof children === 'object' && 'props' in children) {
-    return getText((children as { props: { children?: ReactNode } }).props.children);
-  }
-  return '';
-}
 function decodePathSafe(value: string) {
   try {
     return decodeURIComponent(value);
   } catch {
     return value;
   }
-}
-
-function getHeadings(md: string) {
-  return Array.from(md.matchAll(/^(#{1,6})\s+(.+?)\s*#*$/gm), (match) => ({
-    text: match[2].replace(/[*_`~[\]]/g, ''),
-    level: match[1].length,
-    id: slug(match[2].replace(/[*_`~[\]]/g, '')),
-  }));
 }
 
 function rehypeHighlight(search: string) {
@@ -147,10 +127,7 @@ const themes: { key: Theme; label: string; swatch: string }[] = [
 export default function App() {
   const [markdown, setMarkdown] = useState(sample);
   const [fileName, setFileName] = useState('payment-system.md');
-  const [theme, setTheme] = useState<Theme>('light');
-  const [font, setFont] = useState<Font>('inter');
-  const [size, setSize] = useState(18);
-  const [width, setWidth] = useState(720);
+  const [preferences, setPreferences] = useState(loadPreferences);
   const [settings, setSettings] = useState(false);
   const [nav, setNav] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -160,15 +137,38 @@ export default function App() {
   const [folder, setFolder] = useState<FolderWorkspace>();
   const [activePath, setActivePath] = useState('payment-system.md');
   const [folderLoading, setFolderLoading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [activeHeading, setActiveHeading] = useState('');
+  const dragDepth = useRef(0);
+  const skipPreferenceSave = useRef(false);
   const input = useRef<HTMLInputElement>(null);
   const folderInput = useRef<HTMLInputElement>(null);
-  const headings = useMemo(() => getHeadings(markdown), [markdown]);
+  const headings = useMemo(() => extractHeadings(markdown), [markdown]);
   const words = markdown.trim().split(/\s+/).length;
   const readingMinutes = Math.max(1, Math.ceil(words / 225));
   useEffect(() => {
-    document.body.dataset.theme = theme;
-    document.body.dataset.font = font;
-  }, [theme, font]);
+    document.body.dataset.theme = preferences.theme;
+    document.body.dataset.font = preferences.font;
+    if (skipPreferenceSave.current) skipPreferenceSave.current = false;
+    else savePreferences(preferences);
+  }, [preferences]);
+  useEffect(() => {
+    const elements = Array.from(document.querySelectorAll<HTMLElement>('.reader h1, .reader h2, .reader h3, .reader h4, .reader h5, .reader h6'));
+    if (elements.length === 0) {
+      setActiveHeading('');
+      return;
+    }
+    setActiveHeading(elements[0].id);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) setActiveHeading((visible[0].target as HTMLElement).id);
+      },
+      { rootMargin: '-80px 0px -70% 0px', threshold: 0 },
+    );
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [markdown, focusMode]);
   useEffect(() => {
     if (!focusMode) return;
     const exitOnEscape = (event: KeyboardEvent) => {
@@ -178,6 +178,10 @@ export default function App() {
     return () => window.removeEventListener('keydown', exitOnEscape);
   }, [focusMode]);
   const openFile = (file: File) => {
+    if (!/\.(md|markdown)$/i.test(file.name)) {
+      setLinkNotice('Choose a .md or .markdown file. Other file types are not supported.');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       setMarkdown(String(reader.result));
@@ -187,6 +191,13 @@ export default function App() {
       setLinkNotice(`Opened ${file.name}`);
     };
     reader.readAsText(file);
+  };
+  const handleDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    dragDepth.current = 0;
+    setDragActive(false);
+    const file = event.dataTransfer.files[0];
+    if (file) openFile(file);
   };
   const openFolderFile = async (path: string, anchor = '') => {
     const file = folder?.files.get(path);
@@ -249,14 +260,20 @@ export default function App() {
     await openFolderFile(target.path, target.anchor);
   };
   const style = {
-    '--reading-size': `${size}px`,
-    '--reading-width': `${width}px`,
+    '--reading-size': `${preferences.size}px`,
+    '--reading-width': `${preferences.width}px`,
+    '--reading-line-height': preferences.lineHeight,
   } as CSSProperties;
   return (
     <div
-      className={`app-shell theme-${theme} font-${font}${focusMode ? ' focus-mode' : ''}`}
+      className={`app-shell theme-${preferences.theme} font-${preferences.font}${focusMode ? ' focus-mode' : ''}`}
       style={style}
+      onDragEnter={(event) => { event.preventDefault(); dragDepth.current += 1; setDragActive(true); }}
+      onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; }}
+      onDragLeave={(event) => { event.preventDefault(); dragDepth.current -= 1; if (dragDepth.current <= 0) setDragActive(false); }}
+      onDrop={handleDrop}
     >
+      {dragActive && <div className="drop-overlay" role="status">Drop a Markdown file to open it</div>}
       <header className="topbar">
         <div className="brand">
           <span className="brand-mark">⌁</span>
@@ -340,9 +357,10 @@ export default function App() {
             {headings.map((heading) => (
               <a
                 key={heading.id}
-                className={`level-${heading.level}`}
+                className={`level-${heading.level}${activeHeading === heading.id ? ' active' : ''}`}
                 href={`#${heading.id}`}
-                onClick={() => setNav(false)}
+                onClick={() => { setActiveHeading(heading.id); setNav(false); }}
+                aria-current={activeHeading === heading.id ? 'location' : undefined}
               >
                 {heading.text}
               </a>
@@ -411,14 +429,8 @@ export default function App() {
           <article className="reader">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeSanitize, [rehypeHighlight, search]]}
+              rehypePlugins={[rehypeSanitize, rehypeHeadingIds, [rehypeHighlight, search]]}
               components={{
-                h1: ({ children }) => <h1 id={slug(getText(children))}>{children}</h1>,
-                h2: ({ children }) => <h2 id={slug(getText(children))}>{children}</h2>,
-                h3: ({ children }) => <h3 id={slug(getText(children))}>{children}</h3>,
-                h4: ({ children }) => <h4 id={slug(getText(children))}>{children}</h4>,
-                h5: ({ children }) => <h5 id={slug(getText(children))}>{children}</h5>,
-                h6: ({ children }) => <h6 id={slug(getText(children))}>{children}</h6>,
                 a: ({ href = '', children, ...props }) => {
                   if (href.startsWith('#')) return <a href={href} {...props}>{children}</a>;
                   if (/^https?:\/\//i.test(href)) {
@@ -482,8 +494,8 @@ export default function App() {
           <div className="setting-group">
             <label>Font</label>
             <select
-              value={font}
-              onChange={(e) => setFont(e.target.value as Font)}
+              value={preferences.font}
+              onChange={(e) => setPreferences((current) => ({ ...current, font: e.target.value as Font, fontExplicit: true }))}
             >
               <option value="inter">Inter</option>
               <option value="source-serif">Source Serif 4</option>
@@ -498,8 +510,8 @@ export default function App() {
               {themes.map((item) => (
                 <button
                   key={item.key}
-                  className={`theme-choice ${theme === item.key ? 'active' : ''}`}
-                  onClick={() => setTheme(item.key)}
+                  className={`theme-choice ${preferences.theme === item.key ? 'active' : ''}`}
+                  onClick={() => setPreferences((current) => ({ ...current, theme: item.key }))}
                 >
                   <i className={`swatch ${item.swatch}`} />
                   {item.label}
@@ -510,37 +522,36 @@ export default function App() {
           <div className="setting-group">
             <div className="range-label">
               <label>Text size</label>
-              <span>{size}px</span>
+              <span>{preferences.size}px</span>
             </div>
             <input
               type="range"
               min="15"
               max="23"
-              value={size}
-              onChange={(e) => setSize(Number(e.target.value))}
+              value={preferences.size}
+              onChange={(e) => setPreferences((current) => ({ ...current, size: Number(e.target.value) }))}
             />
           </div>
           <div className="setting-group">
             <div className="range-label">
               <label>Reading width</label>
-              <span>{width}px</span>
+              <span>{preferences.width}px</span>
             </div>
             <input
               type="range"
               min="600"
               max="900"
-              value={width}
+              value={preferences.width}
               step="20"
-              onChange={(e) => setWidth(Number(e.target.value))}
+              onChange={(e) => setPreferences((current) => ({ ...current, width: Number(e.target.value) }))}
             />
           </div>
           <button
             className="reset-button"
             onClick={() => {
-              setTheme('light');
-              setFont('inter');
-              setSize(18);
-              setWidth(720);
+              localStorage.removeItem('markdown-reader:preferences');
+              skipPreferenceSave.current = true;
+              setPreferences({ ...defaultPreferences });
             }}
           >
             Reset preferences
