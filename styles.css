@@ -274,6 +274,10 @@ button {
   padding-left: 24px;
   margin: 12px 0 24px;
 }
+.reader ol {
+  padding-left: 28px;
+  margin: 12px 0 24px;
+}
 .reader li {
   padding-left: 5px;
   margin: 5px 0;
@@ -305,12 +309,65 @@ button {
 }
 .reader pre code {
   background: none;
+  color: #e7eee9;
   padding: 0;
   font-size: inherit;
 }
 .reader a {
   color: var(--accent);
   text-underline-offset: 3px;
+}
+.reader table {
+  width: 100%;
+  margin: 24px 0;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+.reader th,
+.reader td {
+  border: 1px solid var(--border);
+  padding: 9px 12px;
+  text-align: left;
+}
+.reader th {
+  background: var(--surface-2);
+  font-weight: 700;
+}
+.reader input[type="checkbox"] {
+  margin-right: 8px;
+  accent-color: var(--accent);
+}
+.reader .contains-task-list {
+  list-style: none;
+  padding-left: 4px;
+}
+.relative-link {
+  display: inline;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link-notice {
+  max-width: var(--reading-width, 720px);
+  margin: 24px auto -40px;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.link-notice button {
+  border: 0;
+  background: none;
+  color: var(--muted);
 }
 .reader hr {
   border: 0;
@@ -620,7 +677,7 @@ body[data-font="inter"] .reader {
     margin: 0 25px;
   }
   .reader-actions {
-    display: none;
+    display: flex;
   }
   .settings-panel {
     right: 12px;

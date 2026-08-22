@@ -11,12 +11,35 @@
   padding: 0 2px;
 }
 .focus-mode .sidebar,
-.focus-mode .reader-toolbar {
+.focus-mode .reader-toolbar,
+.focus-mode .topbar,
+.focus-mode .search-panel {
   display: none;
 }
 .focus-mode .workspace {
   display: block;
 }
 .focus-mode .reader {
-  padding-top: 90px;
+  padding-top: 72px;
+}
+.focus-mode .workspace {
+  min-height: 100vh;
+}
+.exit-focus {
+  position: fixed;
+  top: 18px;
+  right: 20px;
+  z-index: 40;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 8px 11px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-size: 12px;
+}
+.exit-focus span {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 10px;
 }

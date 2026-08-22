@@ -1,10 +1,15 @@
 import {
   type CSSProperties,
+  type ReactNode,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import type { Element, Root, RootContent, Text } from 'hast';
+import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
+import remarkGfm from 'remark-gfm';
 
 type Theme = 'light' | 'dark' | 'sepia' | 'mono' | 'cappuccino' | 'contrast';
 type Font = 'inter' | 'source-serif' | 'literata' | 'atkinson' | 'jetbrains';
@@ -52,30 +57,66 @@ function slug(value: string) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
 }
-function inline(value: string) {
-  return value
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>');
+function getText(children: ReactNode): string {
+  if (typeof children === 'string' || typeof children === 'number') {
+    return String(children);
+  }
+  if (Array.isArray(children)) return children.map(getText).join('');
+  if (children && typeof children === 'object' && 'props' in children) {
+    return getText((children as { props: { children?: ReactNode } }).props.children);
+  }
+  return '';
 }
-function parseMarkdown(md: string) {
-  const headings: { text: string; level: number; id: string }[] = [];
-  const blocks = md.split(/\n\s*\n/).map((block) => {
-    const lines = block.split('\n');
-    const heading = lines[0].match(/^(#{1,3})\s+(.+)/);
-    if (heading) {
-      const id = slug(heading[2]);
-      headings.push({ text: heading[2], level: heading[1].length, id });
-      return `<h${heading[1].length} id="${id}">${inline(heading[2])}</h${heading[1].length}>`;
-    }
-    if (lines.every((line) => /^\s*[-*]\s+/.test(line)))
-      return `<ul>${lines.map((line) => `<li>${inline(line.replace(/^\s*[-*]\s+/, ''))}</li>`).join('')}</ul>`;
-    if (lines[0].startsWith('> '))
-      return `<blockquote>${inline(lines.map((line) => line.replace(/^>\s?/, '')).join(' '))}</blockquote>`;
-    if (lines[0].startsWith('```'))
-      return `<pre><code>${lines.slice(1, -1).join('\n')}</code></pre>`;
-    return `<p>${inline(lines.join(' '))}</p>`;
-  });
-  return { html: blocks.join(''), headings };
+
+function getHeadings(md: string) {
+  return Array.from(md.matchAll(/^(#{1,6})\s+(.+?)\s*#*$/gm), (match) => ({
+    text: match[2].replace(/[*_`~[\]]/g, ''),
+    level: match[1].length,
+    id: slug(match[2].replace(/[*_`~[\]]/g, '')),
+  }));
+}
+
+function rehypeHighlight(search: string) {
+  return (tree: Root) => {
+    const query = search.trim().toLowerCase();
+    if (!query) return;
+
+    const highlight = (node: Root | Element, excluded = false) => {
+      const skip = excluded || (node.type === 'element' && ['code', 'pre'].includes(node.tagName));
+      const children: RootContent[] = [];
+
+      for (const child of node.children) {
+        if (child.type === 'element') highlight(child, skip);
+        if (skip || child.type !== 'text') {
+          children.push(child);
+          continue;
+        }
+
+        let offset = 0;
+        let match = child.value.toLowerCase().indexOf(query);
+        while (match !== -1) {
+          if (match > offset) {
+            children.push({ type: 'text', value: child.value.slice(offset, match) } as Text);
+          }
+          children.push({
+            type: 'element',
+            tagName: 'mark',
+            properties: {},
+            children: [{ type: 'text', value: child.value.slice(match, match + query.length) }],
+          });
+          offset = match + query.length;
+          match = child.value.toLowerCase().indexOf(query, offset);
+        }
+        if (offset < child.value.length) {
+          children.push({ type: 'text', value: child.value.slice(offset) } as Text);
+        }
+      }
+
+      node.children = children;
+    };
+
+    highlight(tree);
+  };
 }
 
 const themes: { key: Theme; label: string; swatch: string }[] = [
@@ -98,13 +139,23 @@ export default function App() {
   const [nav, setNav] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [focusMode, setFocusMode] = useState(false);
+  const [linkNotice, setLinkNotice] = useState('');
   const input = useRef<HTMLInputElement>(null);
-  const parsed = useMemo(() => parseMarkdown(markdown), [markdown]);
+  const headings = useMemo(() => getHeadings(markdown), [markdown]);
   const words = markdown.trim().split(/\s+/).length;
   useEffect(() => {
     document.body.dataset.theme = theme;
     document.body.dataset.font = font;
   }, [theme, font]);
+  useEffect(() => {
+    if (!focusMode) return;
+    const exitOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setFocusMode(false);
+    };
+    window.addEventListener('keydown', exitOnEscape);
+    return () => window.removeEventListener('keydown', exitOnEscape);
+  }, [focusMode]);
   const openFile = (file: File) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -118,7 +169,10 @@ export default function App() {
     '--reading-width': `${width}px`,
   } as CSSProperties;
   return (
-    <div className={`app-shell theme-${theme} font-${font}`} style={style}>
+    <div
+      className={`app-shell theme-${theme} font-${font}${focusMode ? ' focus-mode' : ''}`}
+      style={style}
+    >
       <header className="topbar">
         <div className="brand">
           <span className="brand-mark">⌁</span>
@@ -175,7 +229,7 @@ export default function App() {
           </div>
           <div className="toc-label">On this page</div>
           <nav className="toc">
-            {parsed.headings.map((heading) => (
+            {headings.map((heading) => (
               <a
                 key={heading.id}
                 className={`level-${heading.level}`}
@@ -200,7 +254,18 @@ export default function App() {
               <strong>{fileName}</strong>
             </div>
             <div className="reader-actions">
-              <button className="subtle-button">Focus mode</button>
+              <button
+                type="button"
+                className="subtle-button"
+                onClick={() => {
+                  setFocusMode(true);
+                  setNav(false);
+                  setSettings(false);
+                  setSearchOpen(false);
+                }}
+              >
+                Focus mode
+              </button>
               <button
                 className="subtle-button"
                 onClick={() => setSettings(true)}
@@ -223,20 +288,50 @@ export default function App() {
               </span>
             </div>
           )}
-          <article
-            className="reader"
-            dangerouslySetInnerHTML={{
-              __html: search
-                ? parsed.html.replace(
-                    new RegExp(
-                      `(${search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`,
-                      'gi'
-                    ),
-                    '<mark>$1</mark>'
-                  )
-                : parsed.html,
-            }}
-          />
+          {linkNotice && (
+            <div className="link-notice" role="status">
+              <span>{linkNotice}</span>
+              <button
+                type="button"
+                onClick={() => setLinkNotice('')}
+                aria-label="Dismiss message"
+              >
+                ×
+              </button>
+            </div>
+          )}
+          <article className="reader">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeSanitize, [rehypeHighlight, search]]}
+              components={{
+                h1: ({ children }) => <h1 id={slug(getText(children))}>{children}</h1>,
+                h2: ({ children }) => <h2 id={slug(getText(children))}>{children}</h2>,
+                h3: ({ children }) => <h3 id={slug(getText(children))}>{children}</h3>,
+                h4: ({ children }) => <h4 id={slug(getText(children))}>{children}</h4>,
+                h5: ({ children }) => <h5 id={slug(getText(children))}>{children}</h5>,
+                h6: ({ children }) => <h6 id={slug(getText(children))}>{children}</h6>,
+                a: ({ href = '', children, ...props }) => {
+                  if (href.startsWith('#')) return <a href={href} {...props}>{children}</a>;
+                  if (/^https?:\/\//i.test(href)) {
+                    return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;
+                  }
+                  if (/^[a-z][a-z\d+.-]*:/i.test(href)) return <a href={href} {...props}>{children}</a>;
+                  return (
+                    <button
+                      type="button"
+                      className="relative-link"
+                      onClick={() => setLinkNotice(`Cannot open “${href}” yet. Folder navigation is not supported.`)}
+                    >
+                      {children}
+                    </button>
+                  );
+                },
+              }}
+            >
+              {markdown}
+            </ReactMarkdown>
+          </article>
           <footer className="reader-footer">
             <span>End of document</span>
             <span>•</span>
@@ -244,6 +339,15 @@ export default function App() {
           </footer>
         </main>
       </div>
+      {focusMode && (
+        <button
+          type="button"
+          className="exit-focus"
+          onClick={() => setFocusMode(false)}
+        >
+          Exit Focus <span>Esc</span>
+        </button>
+      )}
       {(settings || nav) && (
         <div
           className="overlay open"
