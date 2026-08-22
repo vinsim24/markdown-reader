@@ -8,7 +8,12 @@ interface TreeFolder {
 }
 
 function makeTree(paths: string[]) {
-  const root: TreeFolder = { name: '', path: '', folders: new Map(), files: [] };
+  const root: TreeFolder = {
+    name: '',
+    path: '',
+    folders: new Map(),
+    files: [],
+  };
   for (const path of paths) {
     const parts = path.split('/');
     const file = parts.pop();
@@ -16,9 +21,16 @@ function makeTree(paths: string[]) {
     for (const part of parts) {
       const folderPath = folder.path ? `${folder.path}/${part}` : part;
       if (!folder.folders.has(part)) {
-        folder.folders.set(part, { name: part, path: folderPath, folders: new Map(), files: [] });
+        folder.folders.set(part, {
+          name: part,
+          path: folderPath,
+          folders: new Map(),
+          files: [],
+        });
       }
-      folder = folder.folders.get(part)!;
+      const nextFolder = folder.folders.get(part);
+      if (!nextFolder) continue;
+      folder = nextFolder;
     }
     if (file) folder.files.push(path);
   }
@@ -44,10 +56,14 @@ export default function FileTree({ paths, activePath, onOpen }: FileTreeProps) {
   };
   const renderFolder = (folder: TreeFolder, depth: number) => {
     const folders = [...folder.folders.values()].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
     );
     const files = [...folder.files].sort((a, b) =>
-      a.split('/').at(-1)!.localeCompare(b.split('/').at(-1)!, undefined, { sensitivity: 'base' }),
+      (a.split('/').at(-1) || a).localeCompare(
+        b.split('/').at(-1) || b,
+        undefined,
+        { sensitivity: 'base' }
+      )
     );
     return (
       <div key={folder.path || 'root'}>
@@ -85,4 +101,3 @@ export default function FileTree({ paths, activePath, onOpen }: FileTreeProps) {
   };
   return <div className="file-tree">{renderFolder(root, -1)}</div>;
 }
-

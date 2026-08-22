@@ -32,6 +32,13 @@ select {
 button {
   cursor: pointer;
 }
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+}
 .app-shell {
   min-height: 100vh;
 }
@@ -392,7 +399,9 @@ button {
   text-underline-offset: 3px;
 }
 .reader table {
+  display: block;
   width: 100%;
+  overflow-x: auto;
   margin: 24px 0;
   border-collapse: collapse;
   font-size: 0.9em;
@@ -523,6 +532,8 @@ button {
   opacity: 0;
   pointer-events: none;
   transition: 0.2s;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
 }
 .settings-panel.open {
   transform: none;
@@ -557,6 +568,13 @@ button {
   font-weight: 700;
   display: block;
   margin-bottom: 9px;
+}
+.setting-label {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
 }
 .setting-group legend {
   padding: 0;
@@ -681,6 +699,10 @@ input[type="range"] {
   opacity: 0;
   pointer-events: none;
   transition: 0.2s;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
 }
 .overlay.open {
   opacity: 1;
@@ -783,7 +805,7 @@ body[data-font="inter"] .reader {
 body[data-font="system-mono"] .reader {
   font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
 }
-@media (max-width: 850px) {
+@media (max-width: 1100px) {
   .workspace {
     grid-template-columns: 1fr;
   }
@@ -793,7 +815,7 @@ body[data-font="system-mono"] .reader {
     top: 68px;
     bottom: 0;
     height: auto;
-    width: 285px;
+    width: 330px;
     background: var(--surface);
     z-index: 25;
     transform: translateX(-100%);
@@ -828,7 +850,16 @@ body[data-font="system-mono"] .reader {
     margin-right: 22px;
   }
 }
-@media (max-width: 520px) {
+@media (max-width: 640px) {
+  .sidebar {
+    width: min(88vw, 300px);
+  }
+  .settings-panel {
+    top: 10px;
+    bottom: 10px;
+    max-height: none;
+    padding: 18px;
+  }
   .topbar {
     padding: 0 16px;
   }
@@ -852,5 +883,29 @@ body[data-font="system-mono"] .reader {
   }
   .breadcrumbs span:not(:last-child) {
     display: none;
+  }
+}
+@media (max-width: 390px) {
+  .brand > span:last-child {
+    display: none;
+  }
+  .topbar-actions {
+    gap: 5px;
+  }
+  .reader-actions {
+    gap: 2px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

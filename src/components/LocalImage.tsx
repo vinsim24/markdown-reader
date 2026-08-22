@@ -8,7 +8,12 @@ interface LocalImageProps {
   files?: Map<string, File>;
 }
 
-export default function LocalImage({ src = '', alt = '', currentPath, files }: LocalImageProps) {
+export default function LocalImage({
+  src = '',
+  alt = '',
+  currentPath,
+  files,
+}: LocalImageProps) {
   const [url, setUrl] = useState(src);
   const [missing, setMissing] = useState(false);
   useEffect(() => {
@@ -28,7 +33,15 @@ export default function LocalImage({ src = '', alt = '', currentPath, files }: L
     setUrl(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
   }, [currentPath, files, src]);
-  if (missing) return <span className="missing-image" role="img" aria-label={alt || 'Missing image'}>{alt || 'Image unavailable'}</span>;
+  if (missing)
+    return (
+      <span
+        className="missing-image"
+        role="img"
+        aria-label={alt || 'Missing image'}
+      >
+        {alt || 'Image unavailable'}
+      </span>
+    );
   return <img src={url} alt={alt} onError={() => setMissing(true)} />;
 }
-

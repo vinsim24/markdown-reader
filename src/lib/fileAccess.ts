@@ -20,7 +20,10 @@ interface FileHandleLike {
 
 const markdownPattern = /\.(md|markdown)$/i;
 
-function buildWorkspace(name: string, entries: Array<[string, File]>): FolderWorkspace {
+function buildWorkspace(
+  name: string,
+  entries: Array<[string, File]>
+): FolderWorkspace {
   const files = new Map(entries);
   const markdownPaths = entries
     .map(([path]) => path)
@@ -29,7 +32,9 @@ function buildWorkspace(name: string, entries: Array<[string, File]>): FolderWor
   return { name, files, markdownPaths };
 }
 
-export async function scanDirectory(root: DirectoryHandleLike): Promise<FolderWorkspace> {
+export async function scanDirectory(
+  root: DirectoryHandleLike
+): Promise<FolderWorkspace> {
   const entries: Array<[string, File]> = [];
   let visited = 0;
   const visit = async (directory: DirectoryHandleLike, parent = '') => {
@@ -39,7 +44,8 @@ export async function scanDirectory(root: DirectoryHandleLike): Promise<FolderWo
       if (handle.kind === 'directory') await visit(handle, path);
       else entries.push([path, await handle.getFile()]);
       visited += 1;
-      if (visited % 50 === 0) await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      if (visited % 50 === 0)
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
     }
   };
   await visit(root);
@@ -60,14 +66,17 @@ export function workspaceFromFileList(list: FileList): FolderWorkspace {
 }
 
 export async function pickDirectory(): Promise<FolderWorkspace | null> {
-  const picker = (window as typeof window & {
-    showDirectoryPicker?: () => Promise<DirectoryHandleLike>;
-  }).showDirectoryPicker;
+  const picker = (
+    window as typeof window & {
+      showDirectoryPicker?: () => Promise<DirectoryHandleLike>;
+    }
+  ).showDirectoryPicker;
   if (!picker) return null;
   try {
     return await scanDirectory(await picker());
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') return null;
+    if (error instanceof DOMException && error.name === 'AbortError')
+      return null;
     throw error;
   }
 }
@@ -75,4 +84,3 @@ export async function pickDirectory(): Promise<FolderWorkspace | null> {
 export function supportsDirectoryPicker() {
   return 'showDirectoryPicker' in window;
 }
-

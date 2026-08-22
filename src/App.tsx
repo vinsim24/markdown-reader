@@ -1,27 +1,28 @@
+import type { Element, Root, RootContent, Text } from 'hast';
 import {
   type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import type { Element, Root, RootContent, Text } from 'hast';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
 import FileTree from './components/FileTree';
 import LocalImage from './components/LocalImage';
 import {
+  type FolderWorkspace,
   pickDirectory,
   supportsDirectoryPicker,
-  type FolderWorkspace,
   workspaceFromFileList,
 } from './lib/fileAccess';
-import { isExternalUrl, resolveMarkdownTarget } from './lib/paths';
 import { extractHeadings, rehypeHeadingIds } from './lib/headings';
+import { isExternalUrl, resolveMarkdownTarget } from './lib/paths';
 import {
-  contrastRatio,
   type CustomColors,
+  contrastRatio,
   defaultPreferences,
   type Font,
   loadPreferences,
@@ -82,7 +83,9 @@ function rehypeHighlight(search: string) {
     if (!query) return;
 
     const highlight = (node: Root | Element, excluded = false) => {
-      const skip = excluded || (node.type === 'element' && ['code', 'pre'].includes(node.tagName));
+      const skip =
+        excluded ||
+        (node.type === 'element' && ['code', 'pre'].includes(node.tagName));
       const children: RootContent[] = [];
 
       for (const child of node.children) {
@@ -96,19 +99,30 @@ function rehypeHighlight(search: string) {
         let match = child.value.toLowerCase().indexOf(query);
         while (match !== -1) {
           if (match > offset) {
-            children.push({ type: 'text', value: child.value.slice(offset, match) } as Text);
+            children.push({
+              type: 'text',
+              value: child.value.slice(offset, match),
+            } as Text);
           }
           children.push({
             type: 'element',
             tagName: 'mark',
             properties: {},
-            children: [{ type: 'text', value: child.value.slice(match, match + query.length) }],
+            children: [
+              {
+                type: 'text',
+                value: child.value.slice(match, match + query.length),
+              },
+            ],
           });
           offset = match + query.length;
           match = child.value.toLowerCase().indexOf(query, offset);
         }
         if (offset < child.value.length) {
-          children.push({ type: 'text', value: child.value.slice(offset) } as Text);
+          children.push({
+            type: 'text',
+            value: child.value.slice(offset),
+          } as Text);
         }
       }
 
@@ -147,9 +161,21 @@ export default function App() {
   const skipPreferenceSave = useRef(false);
   const input = useRef<HTMLInputElement>(null);
   const folderInput = useRef<HTMLInputElement>(null);
+  const settingsPanel = useRef<HTMLElement>(null);
+  const settingsReturnFocus = useRef<HTMLButtonElement>(null);
+  const navTrigger = useRef<HTMLButtonElement>(null);
   const headings = useMemo(() => extractHeadings(markdown), [markdown]);
   const words = markdown.trim().split(/\s+/).length;
   const readingMinutes = Math.max(1, Math.ceil(words / 225));
+  const openSettings = (event: ReactMouseEvent<HTMLButtonElement>) => {
+    settingsReturnFocus.current = event.currentTarget;
+    setSettings(true);
+    setNav(false);
+  };
+  const closeSettings = () => {
+    setSettings(false);
+    requestAnimationFrame(() => settingsReturnFocus.current?.focus());
+  };
   useEffect(() => {
     document.body.dataset.theme = preferences.theme;
     document.body.dataset.font = preferences.font;
@@ -157,7 +183,11 @@ export default function App() {
     else savePreferences(preferences);
   }, [preferences]);
   useEffect(() => {
-    const elements = Array.from(document.querySelectorAll<HTMLElement>('.reader h1, .reader h2, .reader h3, .reader h4, .reader h5, .reader h6'));
+    const elements = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        '.reader h1, .reader h2, .reader h3, .reader h4, .reader h5, .reader h6'
+      )
+    );
     if (elements.length === 0) {
       setActiveHeading('');
       return;
@@ -165,25 +195,61 @@ export default function App() {
     setActiveHeading(elements[0].id);
     const observer = new IntersectionObserver(
       (entries) => {
-        const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
         if (visible[0]) setActiveHeading((visible[0].target as HTMLElement).id);
       },
-      { rootMargin: '-80px 0px -70% 0px', threshold: 0 },
+      { rootMargin: '-80px 0px -70% 0px', threshold: 0 }
     );
-    elements.forEach((element) => observer.observe(element));
+    elements.forEach((element) => {
+      observer.observe(element);
+    });
     return () => observer.disconnect();
   }, [markdown, focusMode]);
   useEffect(() => {
-    if (!focusMode) return;
-    const exitOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setFocusMode(false);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (settings) {
+        closeSettings();
+      } else if (nav) {
+        setNav(false);
+        requestAnimationFrame(() => navTrigger.current?.focus());
+      } else if (focusMode) setFocusMode(false);
     };
-    window.addEventListener('keydown', exitOnEscape);
-    return () => window.removeEventListener('keydown', exitOnEscape);
-  }, [focusMode]);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [focusMode, nav, settings]);
+  useEffect(() => {
+    if (!settings || !settingsPanel.current) return;
+    const panel = settingsPanel.current;
+    const focusable = Array.from(
+      panel.querySelectorAll<HTMLElement>(
+        'button, input, select, [href], [tabindex]:not([tabindex="-1"])'
+      )
+    );
+    focusable[0]?.focus();
+    const trapFocus = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    panel.addEventListener('keydown', trapFocus);
+    return () => panel.removeEventListener('keydown', trapFocus);
+  }, [settings]);
   const openFile = (file: File) => {
     if (!/\.(md|markdown)$/i.test(file.name)) {
-      setLinkNotice('Choose a .md or .markdown file. Other file types are not supported.');
+      setLinkNotice(
+        'Choose a .md or .markdown file. Other file types are not supported.'
+      );
       return;
     }
     const reader = new FileReader();
@@ -196,13 +262,39 @@ export default function App() {
     };
     reader.readAsText(file);
   };
-  const handleDrop = (event: React.DragEvent) => {
+  const handleDrop = (event: DragEvent) => {
     event.preventDefault();
     dragDepth.current = 0;
     setDragActive(false);
-    const file = event.dataTransfer.files[0];
+    const file = event.dataTransfer?.files[0];
     if (file) openFile(file);
   };
+  useEffect(() => {
+    const enter = (event: DragEvent) => {
+      event.preventDefault();
+      dragDepth.current += 1;
+      setDragActive(true);
+    };
+    const over = (event: DragEvent) => {
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+    };
+    const leave = (event: DragEvent) => {
+      event.preventDefault();
+      dragDepth.current -= 1;
+      if (dragDepth.current <= 0) setDragActive(false);
+    };
+    window.addEventListener('dragenter', enter);
+    window.addEventListener('dragover', over);
+    window.addEventListener('dragleave', leave);
+    window.addEventListener('drop', handleDrop);
+    return () => {
+      window.removeEventListener('dragenter', enter);
+      window.removeEventListener('dragover', over);
+      window.removeEventListener('dragleave', leave);
+      window.removeEventListener('drop', handleDrop);
+    };
+  });
   const openFolderFile = async (path: string, anchor = '') => {
     const file = folder?.files.get(path);
     if (!file) return;
@@ -214,7 +306,9 @@ export default function App() {
     setLinkNotice(`Opened ${path}`);
     if (anchor) {
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => document.getElementById(decodePathSafe(anchor))?.scrollIntoView());
+        requestAnimationFrame(() =>
+          document.getElementById(decodePathSafe(anchor))?.scrollIntoView()
+        );
       });
     } else window.scrollTo({ top: 0 });
   };
@@ -226,7 +320,8 @@ export default function App() {
       return;
     }
     const first = workspace.markdownPaths[0];
-    const file = workspace.files.get(first)!;
+    const file = workspace.files.get(first);
+    if (!file) return;
     setMarkdown(await file.text());
     setFileName(first.split('/').at(-1) || first);
     setActivePath(first);
@@ -242,17 +337,25 @@ export default function App() {
     try {
       await activateFolder(await pickDirectory());
     } catch {
-      setLinkNotice('The folder could not be opened. Check its permissions and try again.');
+      setLinkNotice(
+        'The folder could not be opened. Check its permissions and try again.'
+      );
     } finally {
       setFolderLoading(false);
     }
   };
   const openRelativeLink = async (href: string) => {
     if (!folder) {
-      setLinkNotice('Open the containing folder to follow local Markdown links.');
+      setLinkNotice(
+        'Open the containing folder to follow local Markdown links.'
+      );
       return;
     }
-    const target = resolveMarkdownTarget(href, activePath, new Set(folder.markdownPaths));
+    const target = resolveMarkdownTarget(
+      href,
+      activePath,
+      new Set(folder.markdownPaths)
+    );
     if (!target) {
       setLinkNotice(`Could not find “${href}” inside ${folder.name}.`);
       return;
@@ -267,30 +370,37 @@ export default function App() {
     '--reading-size': `${preferences.size}px`,
     '--reading-width': `${preferences.width}px`,
     '--reading-line-height': preferences.lineHeight,
-    ...(preferences.customColors ? {
-      '--bg': preferences.customColors.background,
-      '--text': preferences.customColors.text,
-      '--accent': preferences.customColors.accent,
-    } : {}),
+    ...(preferences.customColors
+      ? {
+          '--bg': preferences.customColors.background,
+          '--text': preferences.customColors.text,
+          '--accent': preferences.customColors.accent,
+        }
+      : {}),
   } as CSSProperties;
-  const selectedColors = preferences.customColors || themeColors[preferences.theme];
-  const lowContrast = contrastRatio(selectedColors.background, selectedColors.text) < 4.5;
+  const selectedColors =
+    preferences.customColors || themeColors[preferences.theme];
+  const lowContrast =
+    contrastRatio(selectedColors.background, selectedColors.text) < 4.5;
   const setCustomColor = (key: keyof CustomColors, value: string) => {
     setPreferences((current) => ({
       ...current,
-      customColors: { ...(current.customColors || themeColors[current.theme]), [key]: value },
+      customColors: {
+        ...(current.customColors || themeColors[current.theme]),
+        [key]: value,
+      },
     }));
   };
   return (
     <div
       className={`app-shell theme-${preferences.theme} font-${preferences.font} code-${preferences.codeTheme}${focusMode ? ' focus-mode' : ''}`}
       style={style}
-      onDragEnter={(event) => { event.preventDefault(); dragDepth.current += 1; setDragActive(true); }}
-      onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; }}
-      onDragLeave={(event) => { event.preventDefault(); dragDepth.current -= 1; if (dragDepth.current <= 0) setDragActive(false); }}
-      onDrop={handleDrop}
     >
-      {dragActive && <div className="drop-overlay" role="status">Drop a Markdown file to open it</div>}
+      {dragActive && (
+        <div className="drop-overlay" role="status">
+          Drop a Markdown file to open it
+        </div>
+      )}
       <header className="topbar">
         <div className="brand">
           <span className="brand-mark">⌁</span>
@@ -298,27 +408,52 @@ export default function App() {
         </div>
         <div className="topbar-actions">
           <button
+            ref={navTrigger}
+            type="button"
             className="icon-button mobile-only"
-            onClick={() => setNav(true)}
+            onClick={() => {
+              setNav(true);
+              setSettings(false);
+            }}
+            aria-label="Open navigation"
+            aria-expanded={nav}
+            aria-controls="reader-sidebar"
           >
             ☰
           </button>
           <button
+            type="button"
             className="toolbar-button"
             onClick={() => input.current?.click()}
           >
             <span>＋</span> Open file
           </button>
-          <button type="button" className="toolbar-button" onClick={openFolder} disabled={folderLoading}>
+          <button
+            type="button"
+            className="toolbar-button"
+            onClick={openFolder}
+            disabled={folderLoading}
+          >
             <span>⌑</span> {folderLoading ? 'Scanning…' : 'Open folder'}
           </button>
           <button
+            type="button"
             className="icon-button"
             onClick={() => setSearchOpen(!searchOpen)}
+            aria-label="Search document"
+            aria-expanded={searchOpen}
+            aria-controls="document-search"
           >
             ⌕
           </button>
-          <button className="icon-button" onClick={() => setSettings(true)}>
+          <button
+            type="button"
+            className="icon-button"
+            onClick={openSettings}
+            aria-label="Open reading settings"
+            aria-expanded={settings}
+            aria-controls="reading-settings"
+          >
             ☼
           </button>
           <input
@@ -337,17 +472,26 @@ export default function App() {
             type="file"
             hidden
             multiple
-            onChange={(event) => event.target.files && activateFolder(workspaceFromFileList(event.target.files))}
+            onChange={(event) =>
+              event.target.files &&
+              activateFolder(workspaceFromFileList(event.target.files))
+            }
           />
         </div>
       </header>
       <div className="workspace">
-        <aside className={`sidebar ${nav ? 'open' : ''}`}>
+        <aside
+          id="reader-sidebar"
+          className={`sidebar ${nav ? 'open' : ''}`}
+          aria-label="Document navigation"
+        >
           <div className="sidebar-heading">
             <span>Navigation</span>
             <button
+              type="button"
               className="close-nav mobile-only"
               onClick={() => setNav(false)}
+              aria-label="Close navigation"
             >
               ×
             </button>
@@ -363,7 +507,11 @@ export default function App() {
             <div className="folder-section">
               <div className="toc-label">{folder.name}</div>
               {folder.markdownPaths.length > 0 ? (
-                <FileTree paths={folder.markdownPaths} activePath={activePath} onOpen={openFolderFile} />
+                <FileTree
+                  paths={folder.markdownPaths}
+                  activePath={activePath}
+                  onOpen={openFolderFile}
+                />
               ) : (
                 <p className="tree-empty">No Markdown files found</p>
               )}
@@ -376,8 +524,13 @@ export default function App() {
                 key={heading.id}
                 className={`level-${heading.level}${activeHeading === heading.id ? ' active' : ''}`}
                 href={`#${heading.id}`}
-                onClick={() => { setActiveHeading(heading.id); setNav(false); }}
-                aria-current={activeHeading === heading.id ? 'location' : undefined}
+                onClick={() => {
+                  setActiveHeading(heading.id);
+                  setNav(false);
+                }}
+                aria-current={
+                  activeHeading === heading.id ? 'location' : undefined
+                }
               >
                 {heading.text}
               </a>
@@ -410,16 +563,18 @@ export default function App() {
                 Focus mode
               </button>
               <button
+                type="button"
                 className="subtle-button"
-                onClick={() => setSettings(true)}
+                onClick={openSettings}
               >
                 Aa&nbsp; Reading
               </button>
             </div>
           </div>
           {searchOpen && (
-            <div className="search-panel open">
+            <div id="document-search" className="search-panel open">
               <input
+                aria-label="Search this document"
                 placeholder="Search this document…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -446,14 +601,37 @@ export default function App() {
           <article className="reader">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeSanitize, rehypeHeadingIds, [rehypeHighlight, search]]}
+              rehypePlugins={[
+                rehypeSanitize,
+                rehypeHeadingIds,
+                [rehypeHighlight, search],
+              ]}
               components={{
                 a: ({ href = '', children, ...props }) => {
-                  if (href.startsWith('#')) return <a href={href} {...props}>{children}</a>;
+                  if (href.startsWith('#'))
+                    return (
+                      <a href={href} {...props}>
+                        {children}
+                      </a>
+                    );
                   if (/^https?:\/\//i.test(href)) {
-                    return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;
+                    return (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        {...props}
+                      >
+                        {children}
+                      </a>
+                    );
                   }
-                  if (isExternalUrl(href)) return <a href={href} {...props}>{children}</a>;
+                  if (isExternalUrl(href))
+                    return (
+                      <a href={href} {...props}>
+                        {children}
+                      </a>
+                    );
                   return (
                     <button
                       type="button"
@@ -465,7 +643,12 @@ export default function App() {
                   );
                 },
                 img: ({ src, alt }) => (
-                  <LocalImage src={src} alt={alt} currentPath={activePath} files={folder?.files} />
+                  <LocalImage
+                    src={src}
+                    alt={alt}
+                    currentPath={activePath}
+                    files={folder?.files}
+                  />
                 ),
               }}
             >
@@ -489,22 +672,42 @@ export default function App() {
         </button>
       )}
       {(settings || nav) && (
-        <div
+        <button
+          type="button"
           className="overlay open"
+          aria-label={settings ? 'Close reading settings' : 'Close navigation'}
           onClick={() => {
             setSettings(false);
             setNav(false);
+            requestAnimationFrame(() =>
+              (settings
+                ? settingsReturnFocus.current
+                : navTrigger.current
+              )?.focus()
+            );
           }}
         />
       )}
       {settings && (
-        <section className="settings-panel open">
+        <section
+          ref={settingsPanel}
+          id="reading-settings"
+          className="settings-panel open"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="settings-title"
+        >
           <div className="settings-header">
             <div>
               <span className="eyebrow">Personalize</span>
-              <h2>Reading settings</h2>
+              <h2 id="settings-title">Reading settings</h2>
             </div>
-            <button className="close-button" onClick={() => setSettings(false)}>
+            <button
+              type="button"
+              className="close-button"
+              onClick={closeSettings}
+              aria-label="Close reading settings"
+            >
               ×
             </button>
           </div>
@@ -513,7 +716,13 @@ export default function App() {
             <select
               id="reader-font"
               value={preferences.font}
-              onChange={(e) => setPreferences((current) => ({ ...current, font: e.target.value as Font, fontExplicit: true }))}
+              onChange={(e) =>
+                setPreferences((current) => ({
+                  ...current,
+                  font: e.target.value as Font,
+                  fontExplicit: true,
+                }))
+              }
             >
               <option value="inter">Inter</option>
               <option value="source-serif">Source Serif 4</option>
@@ -526,19 +735,23 @@ export default function App() {
             </select>
           </div>
           <div className="setting-group">
-            <label>Theme</label>
+            <span className="setting-label">Theme</span>
             <div className="theme-grid">
               {themes.map((item) => (
                 <button
                   key={item.key}
                   type="button"
                   className={`theme-choice ${preferences.theme === item.key ? 'active' : ''}`}
-                  onClick={() => setPreferences((current) => ({
-                    ...current,
-                    theme: item.key,
-                    font: current.fontExplicit ? current.font : themeFonts[item.key],
-                    customColors: undefined,
-                  }))}
+                  onClick={() =>
+                    setPreferences((current) => ({
+                      ...current,
+                      theme: item.key,
+                      font: current.fontExplicit
+                        ? current.font
+                        : themeFonts[item.key],
+                      customColors: undefined,
+                    }))
+                  }
                 >
                   <i className={`swatch ${item.swatch}`} />
                   {item.label}
@@ -557,7 +770,12 @@ export default function App() {
               min="15"
               max="23"
               value={preferences.size}
-              onChange={(e) => setPreferences((current) => ({ ...current, size: Number(e.target.value) }))}
+              onChange={(e) =>
+                setPreferences((current) => ({
+                  ...current,
+                  size: Number(e.target.value),
+                }))
+              }
             />
           </div>
           <div className="setting-group">
@@ -572,7 +790,12 @@ export default function App() {
               max="900"
               value={preferences.width}
               step="20"
-              onChange={(e) => setPreferences((current) => ({ ...current, width: Number(e.target.value) }))}
+              onChange={(e) =>
+                setPreferences((current) => ({
+                  ...current,
+                  width: Number(e.target.value),
+                }))
+              }
             />
           </div>
           <div className="setting-group">
@@ -587,7 +810,12 @@ export default function App() {
               max="2.1"
               step="0.05"
               value={preferences.lineHeight}
-              onChange={(event) => setPreferences((current) => ({ ...current, lineHeight: Number(event.target.value) }))}
+              onChange={(event) =>
+                setPreferences((current) => ({
+                  ...current,
+                  lineHeight: Number(event.target.value),
+                }))
+              }
             />
           </div>
           <div className="setting-group">
@@ -595,7 +823,12 @@ export default function App() {
             <select
               id="code-theme"
               value={preferences.codeTheme}
-              onChange={(event) => setPreferences((current) => ({ ...current, codeTheme: event.target.value as 'auto' | 'light' | 'dark' }))}
+              onChange={(event) =>
+                setPreferences((current) => ({
+                  ...current,
+                  codeTheme: event.target.value as 'auto' | 'light' | 'dark',
+                }))
+              }
             >
               <option value="auto">Auto</option>
               <option value="light">Light</option>
@@ -604,27 +837,40 @@ export default function App() {
           </div>
           <fieldset className="setting-group color-controls">
             <legend>Custom colors</legend>
-            {([
-              ['background', 'Background'],
-              ['text', 'Text'],
-              ['accent', 'Accent / links'],
-            ] as const).map(([key, label]) => (
+            {(
+              [
+                ['background', 'Background'],
+                ['text', 'Text'],
+                ['accent', 'Accent / links'],
+              ] as const
+            ).map(([key, label]) => (
               <label key={key}>
                 <span>{label}</span>
-                <input type="color" value={selectedColors[key]} onChange={(event) => setCustomColor(key, event.target.value)} />
+                <input
+                  type="color"
+                  value={selectedColors[key]}
+                  onChange={(event) => setCustomColor(key, event.target.value)}
+                />
               </label>
             ))}
-            {lowContrast && <p className="contrast-warning" role="alert">Background and text contrast is below the recommended 4.5:1 ratio.</p>}
+            {lowContrast && (
+              <p className="contrast-warning" role="alert">
+                Background and text contrast is below the recommended 4.5:1
+                ratio.
+              </p>
+            )}
             <button
               type="button"
               className="reset-button compact"
-              onClick={() => setPreferences((current) => ({
-                ...current,
-                font: themeFonts[current.theme],
-                fontExplicit: false,
-                codeTheme: 'auto',
-                customColors: undefined,
-              }))}
+              onClick={() =>
+                setPreferences((current) => ({
+                  ...current,
+                  font: themeFonts[current.theme],
+                  fontExplicit: false,
+                  codeTheme: 'auto',
+                  customColors: undefined,
+                }))
+              }
             >
               Reset theme defaults
             </button>

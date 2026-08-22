@@ -45,7 +45,7 @@ export function resolveAssetPath(reference: string, currentPath: string) {
 export function resolveMarkdownTarget(
   href: string,
   currentPath: string,
-  markdownPaths: ReadonlySet<string>,
+  markdownPaths: ReadonlySet<string>
 ): ResolvedMarkdownTarget | null {
   if (isExternalUrl(href)) return null;
   const hashIndex = href.indexOf('#');
@@ -53,7 +53,8 @@ export function resolveMarkdownTarget(
   const beforeHash = hashIndex === -1 ? href : href.slice(0, hashIndex);
   const queryIndex = beforeHash.indexOf('?');
   const query = queryIndex === -1 ? '' : beforeHash.slice(queryIndex + 1);
-  const rawPath = queryIndex === -1 ? beforeHash : beforeHash.slice(0, queryIndex);
+  const rawPath =
+    queryIndex === -1 ? beforeHash : beforeHash.slice(0, queryIndex);
 
   if (!rawPath) return { path: currentPath, query, anchor };
   const path = normalizePath(`${dirname(currentPath)}/${rawPath}`);
@@ -65,4 +66,3 @@ export function resolveMarkdownTarget(
   const resolved = candidates.find((candidate) => markdownPaths.has(candidate));
   return resolved ? { path: resolved, query, anchor } : null;
 }
-
