@@ -32,43 +32,6 @@ import {
   themeFonts,
 } from './lib/preferences';
 
-const sample = `# Payment System
-
-We'll design a payment system in this chapter, which underpins all of modern e-commerce.
-
-A payment system is used to settle financial transactions, transferring monetary value.
-
-## Step 1 — Understand the Problem and Establish Design Scope
-
-- **C:** What kind of payment system are we building?
-- **I:** A payment backend for an e-commerce system, similar to Amazon.com. It handles everything related to money movement.
-- **C:** What payment options are supported — credit cards, PayPal, bank cards, etc.?
-- **I:** The system should support all these options in real life. For the purposes of the interview, we can use credit card payments.
-- **C:** Do we handle credit card processing ourselves?
-- **I:** No, we use a third-party provider like Stripe, Braintree, Square, etc.
-- **C:** Do we store credit card data in our system?
-- **I:** Due to compliance reasons, we do not store credit card data directly in our systems.
-
-## Step 2 — Core Requirements
-
-The system should provide a reliable way to authorize, capture, refund, and reconcile payments. Every operation should be **idempotent**, traceable, and safe to retry.
-
-### Key decisions
-
-1. Use a payment provider abstraction so we can support multiple providers.
-2. Keep an immutable transaction history for reconciliation.
-3. Publish payment events after state changes are committed.
-
-> The most important property of a payment system is that a customer is never charged twice for the same order.
-
-## Example: Payment State
-
-\`\`\`text
-CREATED → AUTHORIZED → CAPTURED
-                    ↘ FAILED
-\`\`\`
-`;
-
 const themes: { key: Theme; label: string; swatch: string }[] = [
   { key: 'light', label: 'Light', swatch: 'light-swatch' },
   { key: 'dark', label: 'Dark', swatch: 'dark-swatch' },
@@ -143,8 +106,8 @@ function rehypeHighlight(search: string) {
 }
 
 export default function App() {
-  const [markdown, setMarkdown] = useState(sample);
-  const [fileName, setFileName] = useState('payment-system.md');
+  const [markdown, setMarkdown] = useState('');
+  const [fileName, setFileName] = useState<string>();
   const [preferences, setPreferences] = useState(loadPreferences);
   const [settings, setSettings] = useState(false);
   const [nav, setNav] = useState(false);
@@ -153,7 +116,7 @@ export default function App() {
   const [focusMode, setFocusMode] = useState(false);
   const [linkNotice, setLinkNotice] = useState('');
   const [folder, setFolder] = useState<FolderWorkspace>();
-  const [activePath, setActivePath] = useState('payment-system.md');
+  const [activePath, setActivePath] = useState('');
   const [folderLoading, setFolderLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [activeHeading, setActiveHeading] = useState('');
@@ -164,9 +127,10 @@ export default function App() {
   const settingsPanel = useRef<HTMLElement>(null);
   const settingsReturnFocus = useRef<HTMLButtonElement>(null);
   const navTrigger = useRef<HTMLButtonElement>(null);
+  const hasDocument = fileName !== undefined;
   const headings = useMemo(() => extractHeadings(markdown), [markdown]);
-  const words = markdown.trim().split(/\s+/).length;
-  const readingMinutes = Math.max(1, Math.ceil(words / 225));
+  const words = markdown.trim() ? markdown.trim().split(/\s+/).length : 0;
+  const readingMinutes = words ? Math.max(1, Math.ceil(words / 225)) : 0;
   const openSettings = (event: ReactMouseEvent<HTMLButtonElement>) => {
     settingsReturnFocus.current = event.currentTarget;
     setSettings(true);
@@ -409,6 +373,18 @@ export default function App() {
       },
     }));
   };
+  const notice = linkNotice ? (
+    <div className="link-notice" role="status">
+      <span>{linkNotice}</span>
+      <button
+        type="button"
+        onClick={() => setLinkNotice('')}
+        aria-label="Dismiss message"
+      >
+        ×
+      </button>
+    </div>
+  ) : null;
   return (
     <div
       className={`app-shell theme-${preferences.theme} font-${preferences.font} code-${preferences.codeTheme}${focusMode ? ' focus-mode' : ''}`}
@@ -425,20 +401,22 @@ export default function App() {
           <span>markdown reader</span>
         </div>
         <div className="topbar-actions">
-          <button
-            ref={navTrigger}
-            type="button"
-            className="icon-button mobile-only"
-            onClick={() => {
-              setNav(true);
-              setSettings(false);
-            }}
-            aria-label="Open navigation"
-            aria-expanded={nav}
-            aria-controls="reader-sidebar"
-          >
-            ☰
-          </button>
+          {hasDocument && (
+            <button
+              ref={navTrigger}
+              type="button"
+              className="icon-button mobile-only"
+              onClick={() => {
+                setNav(true);
+                setSettings(false);
+              }}
+              aria-label="Open navigation"
+              aria-expanded={nav}
+              aria-controls="reader-sidebar"
+            >
+              ☰
+            </button>
+          )}
           <button
             type="button"
             className="toolbar-button"
@@ -454,16 +432,18 @@ export default function App() {
           >
             <span>⌑</span> {folderLoading ? 'Scanning…' : 'Open folder'}
           </button>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={() => setSearchOpen(!searchOpen)}
-            aria-label="Search document"
-            aria-expanded={searchOpen}
-            aria-controls="document-search"
-          >
-            ⌕
-          </button>
+          {hasDocument && (
+            <button
+              type="button"
+              className="icon-button"
+              onClick={() => setSearchOpen(!searchOpen)}
+              aria-label="Search document"
+              aria-expanded={searchOpen}
+              aria-controls="document-search"
+            >
+              ⌕
+            </button>
+          )}
           <button
             type="button"
             className="icon-button"
@@ -497,190 +477,218 @@ export default function App() {
           />
         </div>
       </header>
-      <div className="workspace">
-        <aside
-          id="reader-sidebar"
-          className={`sidebar ${nav ? 'open' : ''}`}
-          aria-label="Document navigation"
-        >
-          <div className="sidebar-heading">
-            <span>Navigation</span>
-            <button
-              type="button"
-              className="close-nav mobile-only"
-              onClick={() => setNav(false)}
-              aria-label="Close navigation"
-            >
-              ×
-            </button>
-          </div>
-          <div className="file-card">
-            <div className="file-icon">MD</div>
-            <div>
-              <strong>{fileName}</strong>
-              <small>Local document · {readingMinutes} min read</small>
-            </div>
-          </div>
-          {folder && (
-            <div className="folder-section">
-              <div className="toc-label">{folder.name}</div>
-              {folder.markdownPaths.length > 0 ? (
-                <FileTree
-                  paths={folder.markdownPaths}
-                  activePath={activePath}
-                  onOpen={openFolderFile}
-                />
-              ) : (
-                <p className="tree-empty">No Markdown files found</p>
-              )}
-            </div>
-          )}
-          <div className="toc-label">On this page</div>
-          <nav className="toc">
-            {headings.map((heading) => (
-              <a
-                key={heading.id}
-                className={`level-${heading.level}${activeHeading === heading.id ? ' active' : ''}`}
-                href={`#${heading.id}`}
-                onClick={() => {
-                  setActiveHeading(heading.id);
-                  setNav(false);
-                }}
-                aria-current={
-                  activeHeading === heading.id ? 'location' : undefined
-                }
-              >
-                {heading.text}
-              </a>
-            ))}
-          </nav>
-          <div className="sidebar-footer">
-            <span className="status-dot" />
-            Local only <span className="footer-separator">·</span>
-            {words.toLocaleString()} words
-          </div>
-        </aside>
-        <main className="main-area">
-          <div className="reader-toolbar">
-            <div className="breadcrumbs">
-              <span>Documents</span>
-              <span>/</span>
-              <strong>{fileName}</strong>
-            </div>
-            <div className="reader-actions">
+      <div className={`workspace${hasDocument ? '' : ' empty-workspace'}`}>
+        {hasDocument && (
+          <aside
+            id="reader-sidebar"
+            className={`sidebar ${nav ? 'open' : ''}`}
+            aria-label="Document navigation"
+          >
+            <div className="sidebar-heading">
+              <span>Navigation</span>
               <button
                 type="button"
-                className="subtle-button"
-                onClick={() => {
-                  setFocusMode(true);
-                  setNav(false);
-                  setSettings(false);
-                  setSearchOpen(false);
-                }}
-              >
-                Focus mode
-              </button>
-              <button
-                type="button"
-                className="subtle-button"
-                onClick={openSettings}
-              >
-                Aa&nbsp; Reading
-              </button>
-            </div>
-          </div>
-          {searchOpen && (
-            <div id="document-search" className="search-panel open">
-              <input
-                aria-label="Search this document"
-                placeholder="Search this document…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <span>
-                {search
-                  ? `${(markdown.toLowerCase().match(new RegExp(search.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length} matches`
-                  : '⌘ K'}
-              </span>
-            </div>
-          )}
-          {linkNotice && (
-            <div className="link-notice" role="status">
-              <span>{linkNotice}</span>
-              <button
-                type="button"
-                onClick={() => setLinkNotice('')}
-                aria-label="Dismiss message"
+                className="close-nav mobile-only"
+                onClick={() => setNav(false)}
+                aria-label="Close navigation"
               >
                 ×
               </button>
             </div>
-          )}
-          <article className="reader">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[
-                rehypeSanitize,
-                rehypeHeadingIds,
-                [rehypeHighlight, search],
-              ]}
-              components={{
-                a: ({ href = '', children, ...props }) => {
-                  if (href.startsWith('#'))
-                    return (
-                      <a href={href} {...props}>
-                        {children}
-                      </a>
-                    );
-                  if (/^https?:\/\//i.test(href)) {
-                    return (
-                      <a
-                        href={href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        {...props}
-                      >
-                        {children}
-                      </a>
-                    );
-                  }
-                  if (isExternalUrl(href))
-                    return (
-                      <a href={href} {...props}>
-                        {children}
-                      </a>
-                    );
-                  return (
-                    <button
-                      type="button"
-                      className="relative-link"
-                      onClick={() => openRelativeLink(href)}
-                    >
-                      {children}
-                    </button>
-                  );
-                },
-                img: ({ src, alt }) => (
-                  <LocalImage
-                    src={src}
-                    alt={alt}
-                    currentPath={activePath}
-                    files={folder?.files}
+            <div className="file-card">
+              <div className="file-icon">MD</div>
+              <div>
+                <strong>{fileName}</strong>
+                <small>Local document · {readingMinutes} min read</small>
+              </div>
+            </div>
+            {folder && (
+              <div className="folder-section">
+                <div className="toc-label">{folder.name}</div>
+                {folder.markdownPaths.length > 0 ? (
+                  <FileTree
+                    paths={folder.markdownPaths}
+                    activePath={activePath}
+                    onOpen={openFolderFile}
                   />
-                ),
-              }}
-            >
-              {markdown}
-            </ReactMarkdown>
-          </article>
-          <footer className="reader-footer">
-            <span>End of document</span>
-            <span>•</span>
-            <span>Markdown Reader</span>
-          </footer>
+                ) : (
+                  <p className="tree-empty">No Markdown files found</p>
+                )}
+              </div>
+            )}
+            <div className="toc-label">On this page</div>
+            <nav className="toc">
+              {headings.map((heading) => (
+                <a
+                  key={heading.id}
+                  className={`level-${heading.level}${activeHeading === heading.id ? ' active' : ''}`}
+                  href={`#${heading.id}`}
+                  onClick={() => {
+                    setActiveHeading(heading.id);
+                    setNav(false);
+                  }}
+                  aria-current={
+                    activeHeading === heading.id ? 'location' : undefined
+                  }
+                >
+                  {heading.text}
+                </a>
+              ))}
+            </nav>
+            <div className="sidebar-footer">
+              <span className="status-dot" />
+              Local only <span className="footer-separator">·</span>
+              {words.toLocaleString()} words
+            </div>
+          </aside>
+        )}
+        <main className="main-area">
+          {hasDocument ? (
+            <>
+              <div className="reader-toolbar">
+                <div className="breadcrumbs">
+                  <span>Documents</span>
+                  <span>/</span>
+                  <strong>{fileName}</strong>
+                </div>
+                <div className="reader-actions">
+                  <button
+                    type="button"
+                    className="subtle-button"
+                    onClick={() => {
+                      setFocusMode(true);
+                      setNav(false);
+                      setSettings(false);
+                      setSearchOpen(false);
+                    }}
+                  >
+                    Focus mode
+                  </button>
+                  <button
+                    type="button"
+                    className="subtle-button"
+                    onClick={openSettings}
+                  >
+                    Aa&nbsp; Reading
+                  </button>
+                </div>
+              </div>
+              {searchOpen && (
+                <div id="document-search" className="search-panel open">
+                  <input
+                    aria-label="Search this document"
+                    placeholder="Search this document…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                  <span>
+                    {search
+                      ? `${(markdown.toLowerCase().match(new RegExp(search.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length} matches`
+                      : '⌘ K'}
+                  </span>
+                </div>
+              )}
+              {notice}
+              <article className="reader">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[
+                    rehypeSanitize,
+                    rehypeHeadingIds,
+                    [rehypeHighlight, search],
+                  ]}
+                  components={{
+                    a: ({ href = '', children, ...props }) => {
+                      if (href.startsWith('#'))
+                        return (
+                          <a href={href} {...props}>
+                            {children}
+                          </a>
+                        );
+                      if (/^https?:\/\//i.test(href)) {
+                        return (
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            {...props}
+                          >
+                            {children}
+                          </a>
+                        );
+                      }
+                      if (isExternalUrl(href))
+                        return (
+                          <a href={href} {...props}>
+                            {children}
+                          </a>
+                        );
+                      return (
+                        <button
+                          type="button"
+                          className="relative-link"
+                          onClick={() => openRelativeLink(href)}
+                        >
+                          {children}
+                        </button>
+                      );
+                    },
+                    img: ({ src, alt }) => (
+                      <LocalImage
+                        src={src}
+                        alt={alt}
+                        currentPath={activePath}
+                        files={folder?.files}
+                      />
+                    ),
+                  }}
+                >
+                  {markdown}
+                </ReactMarkdown>
+              </article>
+              <footer className="reader-footer">
+                <span>End of document</span>
+                <span>•</span>
+                <span>Markdown Reader</span>
+              </footer>
+            </>
+          ) : (
+            <>
+              {notice}
+              <section className="welcome" aria-labelledby="welcome-title">
+                <span className="welcome-mark" aria-hidden="true">
+                  MD
+                </span>
+                <p className="eyebrow">Your private reading space</p>
+                <h1 id="welcome-title">Open a Markdown document</h1>
+                <p className="welcome-copy">
+                  Choose a file or folder to begin. Your documents stay on this
+                  device and are never uploaded.
+                </p>
+                <div className="welcome-actions">
+                  <button
+                    type="button"
+                    className="welcome-primary"
+                    onClick={() => input.current?.click()}
+                  >
+                    Open file
+                  </button>
+                  <button
+                    type="button"
+                    className="welcome-secondary"
+                    onClick={openFolder}
+                    disabled={folderLoading}
+                  >
+                    {folderLoading ? 'Scanning…' : 'Open folder'}
+                  </button>
+                </div>
+                <p className="welcome-drop">or drop a .md or .markdown file</p>
+              </section>
+            </>
+          )}
         </main>
       </div>
-      {focusMode && (
+      {hasDocument && focusMode && (
         <button
           type="button"
           className="exit-focus"

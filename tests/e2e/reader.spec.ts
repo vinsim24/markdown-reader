@@ -139,6 +139,11 @@ for (const viewport of [
     page,
   }) => {
     await page.setViewportSize(viewport);
+    await page.locator('input[type="file"]:not([multiple])').setInputFiles({
+      name: 'responsive.md',
+      mimeType: 'text/markdown',
+      buffer: Buffer.from('# Responsive document\n\n## Section'),
+    });
     await page.getByRole('button', { name: 'Open navigation' }).click();
     await expect(page.locator('#reader-sidebar')).toBeVisible();
     await page.keyboard.press('Escape');

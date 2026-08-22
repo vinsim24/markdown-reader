@@ -29,9 +29,32 @@ afterEach(() => {
 });
 
 describe('critical reader interactions', () => {
+  it('starts with private file-opening guidance instead of demo content', () => {
+    render(<App />);
+    expect(
+      screen.getByRole('heading', { name: 'Open a Markdown document' })
+    ).not.toBeNull();
+    expect(screen.queryByText('Payment System')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Focus mode' })).toBeNull();
+  });
+
   it('enters focus mode and exits with Escape', async () => {
     const user = userEvent.setup();
     const { container } = render(<App />);
+    const picker = container.querySelector<HTMLInputElement>(
+      'input[type="file"]:not([multiple])'
+    );
+    if (!picker) throw new Error('File picker was not rendered.');
+    fireEvent.change(picker, {
+      target: {
+        files: [
+          new File(['# Focus document'], 'focus.md', {
+            type: 'text/markdown',
+          }),
+        ],
+      },
+    });
+    await screen.findByRole('heading', { name: 'Focus document' });
     await user.click(screen.getByRole('button', { name: 'Focus mode' }));
     expect(
       container.querySelector('.app-shell')?.classList.contains('focus-mode')
