@@ -274,6 +274,50 @@ button {
   padding-left: 24px;
   margin: 12px 0 24px;
 }
+.folder-section {
+  max-height: 34vh;
+  overflow: auto;
+  margin: 4px 0 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.folder-section .toc-label {
+  margin-top: 14px;
+}
+.file-tree {
+  display: flex;
+  flex-direction: column;
+}
+.tree-folder,
+.tree-file {
+  width: 100%;
+  min-height: 32px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  text-align: left;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tree-folder {
+  color: var(--text);
+  font-weight: 600;
+}
+.tree-file:hover,
+.tree-file.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.tree-file.active::before {
+  content: "• ";
+}
+.tree-empty {
+  color: var(--muted);
+  font-size: 11px;
+}
 .reader ol {
   padding-left: 28px;
   margin: 12px 0 24px;
@@ -322,6 +366,23 @@ button {
   margin: 24px 0;
   border-collapse: collapse;
   font-size: 0.9em;
+}
+.reader img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 24px auto;
+  border-radius: 8px;
+}
+.missing-image {
+  display: block;
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.85em;
 }
 .reader th,
 .reader td {

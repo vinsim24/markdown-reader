@@ -10,6 +10,15 @@ import type { Element, Root, RootContent, Text } from 'hast';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
+import FileTree from './components/FileTree';
+import LocalImage from './components/LocalImage';
+import {
+  pickDirectory,
+  supportsDirectoryPicker,
+  type FolderWorkspace,
+  workspaceFromFileList,
+} from './lib/fileAccess';
+import { isExternalUrl, resolveMarkdownTarget } from './lib/paths';
 
 type Theme = 'light' | 'dark' | 'sepia' | 'mono' | 'cappuccino' | 'contrast';
 type Font = 'inter' | 'source-serif' | 'literata' | 'atkinson' | 'jetbrains';
@@ -66,6 +75,13 @@ function getText(children: ReactNode): string {
     return getText((children as { props: { children?: ReactNode } }).props.children);
   }
   return '';
+}
+function decodePathSafe(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }
 
 function getHeadings(md: string) {
@@ -141,9 +157,14 @@ export default function App() {
   const [search, setSearch] = useState('');
   const [focusMode, setFocusMode] = useState(false);
   const [linkNotice, setLinkNotice] = useState('');
+  const [folder, setFolder] = useState<FolderWorkspace>();
+  const [activePath, setActivePath] = useState('payment-system.md');
+  const [folderLoading, setFolderLoading] = useState(false);
   const input = useRef<HTMLInputElement>(null);
+  const folderInput = useRef<HTMLInputElement>(null);
   const headings = useMemo(() => getHeadings(markdown), [markdown]);
   const words = markdown.trim().split(/\s+/).length;
+  const readingMinutes = Math.max(1, Math.ceil(words / 225));
   useEffect(() => {
     document.body.dataset.theme = theme;
     document.body.dataset.font = font;
@@ -161,8 +182,71 @@ export default function App() {
     reader.onload = () => {
       setMarkdown(String(reader.result));
       setFileName(file.name);
+      setActivePath(file.name);
+      setFolder(undefined);
+      setLinkNotice(`Opened ${file.name}`);
     };
     reader.readAsText(file);
+  };
+  const openFolderFile = async (path: string, anchor = '') => {
+    const file = folder?.files.get(path);
+    if (!file) return;
+    setMarkdown(await file.text());
+    setFileName(path.split('/').at(-1) || path);
+    setActivePath(path);
+    setSearch('');
+    setNav(false);
+    setLinkNotice(`Opened ${path}`);
+    if (anchor) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => document.getElementById(decodePathSafe(anchor))?.scrollIntoView());
+      });
+    } else window.scrollTo({ top: 0 });
+  };
+  const activateFolder = async (workspace: FolderWorkspace | null) => {
+    if (!workspace) return;
+    setFolder(workspace);
+    if (workspace.markdownPaths.length === 0) {
+      setLinkNotice(`No Markdown files were found in ${workspace.name}.`);
+      return;
+    }
+    const first = workspace.markdownPaths[0];
+    const file = workspace.files.get(first)!;
+    setMarkdown(await file.text());
+    setFileName(first.split('/').at(-1) || first);
+    setActivePath(first);
+    setSearch('');
+    setLinkNotice(`Opened folder ${workspace.name}`);
+  };
+  const openFolder = async () => {
+    if (!supportsDirectoryPicker()) {
+      folderInput.current?.click();
+      return;
+    }
+    setFolderLoading(true);
+    try {
+      await activateFolder(await pickDirectory());
+    } catch {
+      setLinkNotice('The folder could not be opened. Check its permissions and try again.');
+    } finally {
+      setFolderLoading(false);
+    }
+  };
+  const openRelativeLink = async (href: string) => {
+    if (!folder) {
+      setLinkNotice('Open the containing folder to follow local Markdown links.');
+      return;
+    }
+    const target = resolveMarkdownTarget(href, activePath, new Set(folder.markdownPaths));
+    if (!target) {
+      setLinkNotice(`Could not find “${href}” inside ${folder.name}.`);
+      return;
+    }
+    if (target.path === activePath) {
+      document.getElementById(decodePathSafe(target.anchor))?.scrollIntoView();
+      return;
+    }
+    await openFolderFile(target.path, target.anchor);
   };
   const style = {
     '--reading-size': `${size}px`,
@@ -191,6 +275,9 @@ export default function App() {
           >
             <span>＋</span> Open file
           </button>
+          <button type="button" className="toolbar-button" onClick={openFolder} disabled={folderLoading}>
+            <span>⌑</span> {folderLoading ? 'Scanning…' : 'Open folder'}
+          </button>
           <button
             className="icon-button"
             onClick={() => setSearchOpen(!searchOpen)}
@@ -206,6 +293,17 @@ export default function App() {
             accept=".md,.markdown,text/markdown,text/plain"
             hidden
             onChange={(e) => e.target.files?.[0] && openFile(e.target.files[0])}
+          />
+          <input
+            ref={(element) => {
+              folderInput.current = element;
+              element?.setAttribute('webkitdirectory', '');
+              element?.setAttribute('directory', '');
+            }}
+            type="file"
+            hidden
+            multiple
+            onChange={(event) => event.target.files && activateFolder(workspaceFromFileList(event.target.files))}
           />
         </div>
       </header>
@@ -224,9 +322,19 @@ export default function App() {
             <div className="file-icon">MD</div>
             <div>
               <strong>{fileName}</strong>
-              <small>Local document · 8 min read</small>
+              <small>Local document · {readingMinutes} min read</small>
             </div>
           </div>
+          {folder && (
+            <div className="folder-section">
+              <div className="toc-label">{folder.name}</div>
+              {folder.markdownPaths.length > 0 ? (
+                <FileTree paths={folder.markdownPaths} activePath={activePath} onOpen={openFolderFile} />
+              ) : (
+                <p className="tree-empty">No Markdown files found</p>
+              )}
+            </div>
+          )}
           <div className="toc-label">On this page</div>
           <nav className="toc">
             {headings.map((heading) => (
@@ -316,17 +424,20 @@ export default function App() {
                   if (/^https?:\/\//i.test(href)) {
                     return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;
                   }
-                  if (/^[a-z][a-z\d+.-]*:/i.test(href)) return <a href={href} {...props}>{children}</a>;
+                  if (isExternalUrl(href)) return <a href={href} {...props}>{children}</a>;
                   return (
                     <button
                       type="button"
                       className="relative-link"
-                      onClick={() => setLinkNotice(`Cannot open “${href}” yet. Folder navigation is not supported.`)}
+                      onClick={() => openRelativeLink(href)}
                     >
                       {children}
                     </button>
                   );
                 },
+                img: ({ src, alt }) => (
+                  <LocalImage src={src} alt={alt} currentPath={activePath} files={folder?.files} />
+                ),
               }}
             >
               {markdown}
