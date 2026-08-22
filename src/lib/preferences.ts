@@ -46,9 +46,9 @@ export const themeFonts: Record<Theme, Font> = {
 export const themeColors: Record<Theme, CustomColors> = {
   light: { background: '#f7f7f5', text: '#292a2d', accent: '#3d6b5c' },
   dark: { background: '#191b1c', text: '#e7e8e4', accent: '#90c2a5' },
-  sepia: { background: '#f2eadb', text: '#493e32', accent: '#9b6846' },
+  sepia: { background: '#f2eadb', text: '#493e32', accent: '#74452d' },
   mono: { background: '#f5f5f3', text: '#222222', accent: '#222222' },
-  cappuccino: { background: '#e8ddcf', text: '#44332a', accent: '#9a6043' },
+  cappuccino: { background: '#e8ddcf', text: '#44332a', accent: '#70412d' },
   contrast: { background: '#ffffff', text: '#000000', accent: '#003cff' },
 };
 export const defaultPreferences: ReaderPreferences = {

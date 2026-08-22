@@ -69,6 +69,15 @@ CREATED → AUTHORIZED → CAPTURED
 \`\`\`
 `;
 
+const themes: { key: Theme; label: string; swatch: string }[] = [
+  { key: 'light', label: 'Light', swatch: 'light-swatch' },
+  { key: 'dark', label: 'Dark', swatch: 'dark-swatch' },
+  { key: 'sepia', label: 'Sepia', swatch: 'sepia-swatch' },
+  { key: 'mono', label: 'Mono', swatch: 'mono-swatch' },
+  { key: 'cappuccino', label: 'Cappuccino', swatch: 'cappuccino-swatch' },
+  { key: 'contrast', label: 'High Contrast', swatch: 'contrast-swatch' },
+];
+
 function decodePathSafe(value: string) {
   try {
     return decodeURIComponent(value);
@@ -132,15 +141,6 @@ function rehypeHighlight(search: string) {
     highlight(tree);
   };
 }
-
-const themes: { key: Theme; label: string; swatch: string }[] = [
-  { key: 'light', label: 'Light', swatch: 'light-swatch' },
-  { key: 'dark', label: 'Dark', swatch: 'dark-swatch' },
-  { key: 'sepia', label: 'Sepia', swatch: 'sepia-swatch' },
-  { key: 'mono', label: 'Mono', swatch: 'mono-swatch' },
-  { key: 'cappuccino', label: 'Cappuccino', swatch: 'cappuccino-swatch' },
-  { key: 'contrast', label: 'High Contrast', swatch: 'contrast-swatch' },
-];
 
 export default function App() {
   const [markdown, setMarkdown] = useState(sample);
@@ -295,7 +295,18 @@ export default function App() {
       window.removeEventListener('drop', handleDrop);
     };
   });
-  const openFolderFile = async (path: string, anchor = '') => {
+  const updateDocumentLocation = (query = '', anchor = '') => {
+    const searchPart = query ? `?${query}` : '';
+    const hashPart = anchor
+      ? `#${encodeURIComponent(decodePathSafe(anchor))}`
+      : '';
+    history.replaceState(
+      null,
+      '',
+      `${location.pathname}${searchPart}${hashPart}`
+    );
+  };
+  const openFolderFile = async (path: string, anchor = '', query = '') => {
     const file = folder?.files.get(path);
     if (!file) return;
     setMarkdown(await file.text());
@@ -306,11 +317,16 @@ export default function App() {
     setLinkNotice(`Opened ${path}`);
     if (anchor) {
       requestAnimationFrame(() => {
-        requestAnimationFrame(() =>
-          document.getElementById(decodePathSafe(anchor))?.scrollIntoView()
-        );
+        requestAnimationFrame(() => {
+          const decodedAnchor = decodePathSafe(anchor);
+          updateDocumentLocation(query, anchor);
+          document.getElementById(decodedAnchor)?.scrollIntoView();
+        });
       });
-    } else window.scrollTo({ top: 0 });
+    } else {
+      updateDocumentLocation(query);
+      window.scrollTo({ top: 0 });
+    }
   };
   const activateFolder = async (workspace: FolderWorkspace | null) => {
     if (!workspace) return;
@@ -361,10 +377,12 @@ export default function App() {
       return;
     }
     if (target.path === activePath) {
-      document.getElementById(decodePathSafe(target.anchor))?.scrollIntoView();
+      const decodedAnchor = decodePathSafe(target.anchor);
+      updateDocumentLocation(target.query, target.anchor);
+      document.getElementById(decodedAnchor)?.scrollIntoView();
       return;
     }
-    await openFolderFile(target.path, target.anchor);
+    await openFolderFile(target.path, target.anchor, target.query);
   };
   const style = {
     '--reading-size': `${preferences.size}px`,

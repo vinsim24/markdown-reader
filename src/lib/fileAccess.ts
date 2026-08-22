@@ -6,13 +6,13 @@ export interface FolderWorkspace {
   markdownPaths: string[];
 }
 
-interface DirectoryHandleLike {
+export interface DirectoryHandleLike {
   name: string;
   values(): AsyncIterableIterator<FileHandleLike | DirectoryHandleLike>;
   kind: 'directory';
 }
 
-interface FileHandleLike {
+export interface FileHandleLike {
   name: string;
   getFile(): Promise<File>;
   kind: 'file';
@@ -82,5 +82,8 @@ export async function pickDirectory(): Promise<FolderWorkspace | null> {
 }
 
 export function supportsDirectoryPicker() {
-  return 'showDirectoryPicker' in window;
+  return (
+    typeof (window as typeof window & { showDirectoryPicker?: unknown })
+      .showDirectoryPicker === 'function'
+  );
 }

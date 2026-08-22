@@ -20,26 +20,27 @@
 
 ## File Access
 
-- The MVP opens only files explicitly selected through the browser picker.
+- The MVP opens only files or folders explicitly selected through browser pickers, or individual files explicitly dropped onto the application.
 - Avoid broad macOS or Windows filesystem permissions.
 - Docker must not mount or scan the user’s home directory.
 - Drag-and-drop should use browser file access.
-- Folder access and linked local Markdown files are a future feature.
+- Folder access is session-only; filesystem handles are not persisted.
 
 ## MVP Functionality
 
-- Open `.md` and `.markdown` files
-- Drag-and-drop
-- GitHub-flavored Markdown
-- Clickable heading navigation
-- Current-section highlighting
-- Document search
-- Responsive desktop, tablet, and phone layouts
-- Focus mode
-- Reading preferences stored locally
-- External links open safely in another tab
-- Relative links must not navigate to broken localhost routes
-- Tables, task lists, ordered lists, blockquotes, images, and code blocks
+- [x] Open `.md` and `.markdown` files
+- [x] Explicit session-only folder navigation
+- [x] Individual-file drag-and-drop
+- [x] GitHub-flavored Markdown
+- [x] Clickable, duplicate-safe heading navigation
+- [x] Current-section highlighting
+- [x] Document search and match highlighting
+- [x] Responsive desktop, tablet, and phone layouts
+- [x] Focus mode
+- [x] Reading preferences stored locally
+- [x] External links open safely in another tab
+- [x] Relative Markdown links and images resolve inside a granted folder
+- [x] Tables, task lists, ordered lists, blockquotes, images, and code blocks
 
 ## Themes
 
@@ -93,25 +94,34 @@
 - Accessibility and readable contrast are required
 - Mono and Cappuccino are additional presets, not replacements
 
-## Current Problems
+## Resolved MVP Problems
 
-- Focus mode has no working handler.
-- It needs an Exit Focus control and Escape-key support.
-- The handwritten Markdown parser breaks Markdown links.
-- Ordered lists appear as a single paragraph.
-- Linked headings display raw Markdown syntax.
-- Code-block text has insufficient contrast.
-- Relative links navigate to broken localhost routes.
+- [x] Focus mode has a working handler, Exit Focus control, and Escape-key support.
+- [x] `react-markdown` replaces the handwritten parser and renders ordered lists correctly.
+- [x] Formatted headings use structural labels and duplicate-safe IDs.
+- [x] Code-block text has accessible contrast.
+- [x] Relative links never navigate to broken localhost routes.
 
 ## Required Technical Change
 
-- Replace the handwritten parser with `react-markdown`.
-- Add `remark-gfm`.
-- Sanitize output using `rehype-sanitize`.
-- Generate stable heading IDs and table of contents.
-- Preserve search highlighting.
-- Open external links in a new tab with safe `rel` attributes.
-- For now, intercept relative links and explain that folder access is required.
+- [x] Replace the handwritten parser with `react-markdown`.
+- [x] Add `remark-gfm`.
+- [x] Sanitize output using `rehype-sanitize`.
+- [x] Generate stable heading IDs and table of contents.
+- [x] Preserve search highlighting.
+- [x] Open external links in a new tab with safe `rel` attributes.
+- [x] Resolve local relative links only after explicit folder permission.
+
+## Post-MVP Roadmap
+
+- Tauri desktop packaging
+- Editing and saving Markdown
+- Persistent folder permissions (only after a separate security/design review)
+- Cloud storage or synchronization
+- Bookmarks, reading history, and tabs
+- PDF or HTML export
+- Large-library full-text indexing
+- Custom theme preset management beyond the current local colors
 
 ## Development Rules
 
@@ -126,4 +136,3 @@
 - Do not ask the user to copy individual files or manually apply code changes.
 - Do not commit or push unless the user approves.
 - Preserve unrelated user changes.
-
