@@ -7,7 +7,7 @@ A private, responsive reader for comfortable long-form Markdown. Documents are p
 - Open individual `.md` and `.markdown` files, or drag a file into the page.
 - Explicitly open a local folder and navigate a recursive Markdown file tree.
 - Follow safe relative Markdown links and load relative images from the granted folder.
-- Render sanitized GitHub-flavored Markdown, including tables, task lists, blockquotes, images, code blocks, and Mermaid diagrams.
+- Render sanitized GitHub-flavored Markdown, including tables, task lists, blockquotes, images, code blocks, KaTeX math, safe inline HTML, and Mermaid diagrams.
 - Search with match highlighting, current-section navigation, and Focus mode.
 - Persist validated reading preferences locally: themes, fonts, size, width, line height, custom colors, and code theme.
 - Responsive desktop, tablet, and mobile layouts with accessible keyboard/dialog behavior.
@@ -19,6 +19,8 @@ Markdown contents never leave the browser. File and folder access begins only af
 Chrome and Edge are the primary desktop browsers because they support `showDirectoryPicker()`. Other modern browsers receive a directory-input fallback. Native permission prompts are intentionally not automated.
 
 Mermaid diagrams render locally from fenced `mermaid` code blocks. The renderer is loaded only when needed and runs with Mermaid's strict security mode; invalid diagrams show their source with a clear error instead of breaking the document.
+
+Inline and display LaTeX use `$…$` and `$$…$$` syntax and render locally with KaTeX. Inline HTML is parsed only to support a small sanitized set of reading-oriented elements such as `sup`, `sub`, `kbd`, `abbr`, and `mark`; scripts and event handlers are removed.
 
 Known limitations:
 

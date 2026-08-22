@@ -10,10 +10,13 @@ import {
   useState,
 } from 'react';
 import ReactMarkdown from 'react-markdown';
-import rehypeSanitize from 'rehype-sanitize';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import FileTree from './components/FileTree';
 import LocalImage from './components/LocalImage';
+import MathExpression from './components/MathExpression';
 import MermaidDiagram from './components/MermaidDiagram';
 import {
   type FolderWorkspace,
@@ -43,6 +46,15 @@ const themes: { key: Theme; label: string; swatch: string }[] = [
   { key: 'cappuccino', label: 'Cappuccino', swatch: 'cappuccino-swatch' },
   { key: 'contrast', label: 'High Contrast', swatch: 'contrast-swatch' },
 ];
+
+const markdownSanitizeSchema = {
+  ...defaultSchema,
+  tagNames: [...(defaultSchema.tagNames || []), 'abbr', 'mark'],
+  attributes: {
+    ...defaultSchema.attributes,
+    code: [['className', /^language-./, 'math-inline', 'math-display']],
+  },
+};
 
 function decodePathSafe(value: string) {
   try {
@@ -614,9 +626,10 @@ export default function App() {
               {notice}
               <article className="reader">
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
+                  remarkPlugins={[remarkGfm, remarkMath]}
                   rehypePlugins={[
-                    rehypeSanitize,
+                    rehypeRaw,
+                    [rehypeSanitize, markdownSanitizeSchema],
                     rehypeHeadingIds,
                     [rehypeHighlight, search],
                   ]}
@@ -628,7 +641,8 @@ export default function App() {
                       }>(children)
                         ? children
                         : null;
-                      if (code?.props.className === 'language-mermaid') {
+                      const classes = code?.props.className?.split(/\s+/) || [];
+                      if (code && classes.includes('language-mermaid')) {
                         return (
                           <MermaidDiagram
                             source={String(code.props.children).replace(
@@ -639,8 +653,28 @@ export default function App() {
                           />
                         );
                       }
+                      if (code && classes.includes('math-display')) {
+                        return (
+                          <MathExpression
+                            display
+                            source={String(code.props.children).replace(
+                              /\n$/,
+                              ''
+                            )}
+                          />
+                        );
+                      }
                       return <pre>{children}</pre>;
                     },
+                    code: ({ className, children }) =>
+                      className?.split(/\s+/).includes('math-inline') ? (
+                        <MathExpression
+                          display={false}
+                          source={String(children).replace(/\n$/, '')}
+                        />
+                      ) : (
+                        <code className={className}>{children}</code>
+                      ),
                     a: ({ href = '', children, ...props }) => {
                       if (href.startsWith('#'))
                         return (

@@ -73,6 +73,18 @@ test('opens the directory fallback and resolves local content', async ({
   await expect(page.locator('.mermaid-diagram')).not.toContainText(
     'flowchart LR'
   );
+  await page.getByRole('button', { name: 'Markdown-Cheat-sheet.md' }).click();
+  await expect(page.locator('.reader .katex')).toHaveCount(5);
+  await expect(page.locator('.reader sup').first()).toContainText('2');
+  await expect(page.locator('.reader sub').first()).toContainText('2');
+  await expect(page.locator('.reader kbd').first()).toHaveText('Ctrl');
+  await expect(page.locator('.reader abbr')).toHaveAttribute(
+    'title',
+    'Hypertext Markup Language'
+  );
+  await expect(page.locator('.reader mark')).toHaveText('Highlighted text');
+  await expect(page.locator('.reader script')).toHaveCount(0);
+  await page.getByRole('button', { name: 'README.md' }).click();
   await page.getByRole('button', { name: 'Chapter details' }).click();
   await expect(page).toHaveURL(/#details$/);
 });

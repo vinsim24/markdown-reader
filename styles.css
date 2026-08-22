@@ -558,6 +558,44 @@ select:focus-visible {
   list-style: none;
   padding-left: 4px;
 }
+.reader kbd {
+  display: inline-block;
+  min-width: 1.7em;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 1px 6px;
+  background: var(--surface-2);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.78em;
+  line-height: 1.45;
+  text-align: center;
+}
+.reader abbr[title] {
+  cursor: help;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.reader .katex-display {
+  margin: 28px 0;
+  padding: 12px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.math-expression-inline {
+  display: inline;
+}
+.math-expression-display {
+  margin: 28px 0;
+  text-align: center;
+}
+.math-status {
+  color: var(--muted);
+  font-size: 0.8em;
+}
+.math-error {
+  color: var(--text);
+}
 .relative-link {
   display: inline;
   border: 0;

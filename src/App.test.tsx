@@ -101,6 +101,37 @@ describe('critical reader interactions', () => {
     ).not.toBeNull();
   });
 
+  it('renders math and allowed inline HTML while removing unsafe HTML', async () => {
+    const { container } = render(<App />);
+    const picker = container.querySelector<HTMLInputElement>(
+      'input[type="file"]:not([multiple])'
+    );
+    if (!picker) throw new Error('File picker was not rendered.');
+    fireEvent.change(picker, {
+      target: {
+        files: [
+          new File(
+            [
+              '# Extended syntax\n\n$E = mc^2$\n\n<mark onclick="alert(1)">Safe highlight</mark><script>window.compromised = true</script>',
+            ],
+            'extended.md',
+            { type: 'text/markdown' }
+          ),
+        ],
+      },
+    });
+
+    await screen.findByRole('heading', { name: 'Extended syntax' });
+    await waitFor(() =>
+      expect(container.querySelector('.katex')).not.toBeNull()
+    );
+    expect(container.querySelector('mark')?.textContent).toBe('Safe highlight');
+    expect(container.querySelector('mark')?.hasAttribute('onclick')).toBe(
+      false
+    );
+    expect(container.querySelector('script')).toBeNull();
+  });
+
   it('persists validated reading settings', async () => {
     const user = userEvent.setup();
     render(<App />);
