@@ -38,6 +38,11 @@ test('opens a single file, searches it, and uses Focus mode', async ({
   await expect(page.getByRole('button', { name: /Exit Focus/ })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: /Exit Focus/ })).toBeHidden();
+  await page.getByRole('button', { name: 'Return to start' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Open a Markdown document' })
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Single file' })).toBeHidden();
 });
 
 test('opens the directory fallback and resolves local content', async ({

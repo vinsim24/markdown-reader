@@ -270,6 +270,21 @@ export default function App() {
       `${location.pathname}${searchPart}${hashPart}`
     );
   };
+  const closeDocument = () => {
+    setMarkdown('');
+    setFileName(undefined);
+    setFolder(undefined);
+    setActivePath('');
+    setSearch('');
+    setSearchOpen(false);
+    setFocusMode(false);
+    setNav(false);
+    setSettings(false);
+    setLinkNotice('');
+    setActiveHeading('');
+    updateDocumentLocation();
+    window.scrollTo({ top: 0 });
+  };
   const openFolderFile = async (path: string, anchor = '', query = '') => {
     const file = folder?.files.get(path);
     if (!file) return;
@@ -396,10 +411,15 @@ export default function App() {
         </div>
       )}
       <header className="topbar">
-        <div className="brand">
+        <button
+          type="button"
+          className="brand"
+          onClick={closeDocument}
+          aria-label="Return to start"
+        >
           <span className="brand-mark">⌁</span>
           <span>markdown reader</span>
-        </div>
+        </button>
         <div className="topbar-actions">
           {hasDocument && (
             <button

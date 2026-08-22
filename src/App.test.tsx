@@ -64,6 +64,13 @@ describe('critical reader interactions', () => {
     expect(
       container.querySelector('.app-shell')?.classList.contains('focus-mode')
     ).toBe(false);
+    await user.click(screen.getByRole('button', { name: 'Return to start' }));
+    expect(
+      screen.getByRole('heading', { name: 'Open a Markdown document' })
+    ).not.toBeNull();
+    expect(
+      screen.queryByRole('heading', { name: 'Focus document' })
+    ).toBeNull();
   });
 
   it('opens a local file, highlights search, and intercepts relative links', async () => {
