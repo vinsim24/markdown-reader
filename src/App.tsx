@@ -20,11 +20,15 @@ import {
 import { isExternalUrl, resolveMarkdownTarget } from './lib/paths';
 import { extractHeadings, rehypeHeadingIds } from './lib/headings';
 import {
+  contrastRatio,
+  type CustomColors,
   defaultPreferences,
   type Font,
   loadPreferences,
   savePreferences,
   type Theme,
+  themeColors,
+  themeFonts,
 } from './lib/preferences';
 
 const sample = `# Payment System
@@ -121,7 +125,7 @@ const themes: { key: Theme; label: string; swatch: string }[] = [
   { key: 'sepia', label: 'Sepia', swatch: 'sepia-swatch' },
   { key: 'mono', label: 'Mono', swatch: 'mono-swatch' },
   { key: 'cappuccino', label: 'Cappuccino', swatch: 'cappuccino-swatch' },
-  { key: 'contrast', label: 'Contrast', swatch: 'contrast-swatch' },
+  { key: 'contrast', label: 'High Contrast', swatch: 'contrast-swatch' },
 ];
 
 export default function App() {
@@ -263,10 +267,23 @@ export default function App() {
     '--reading-size': `${preferences.size}px`,
     '--reading-width': `${preferences.width}px`,
     '--reading-line-height': preferences.lineHeight,
+    ...(preferences.customColors ? {
+      '--bg': preferences.customColors.background,
+      '--text': preferences.customColors.text,
+      '--accent': preferences.customColors.accent,
+    } : {}),
   } as CSSProperties;
+  const selectedColors = preferences.customColors || themeColors[preferences.theme];
+  const lowContrast = contrastRatio(selectedColors.background, selectedColors.text) < 4.5;
+  const setCustomColor = (key: keyof CustomColors, value: string) => {
+    setPreferences((current) => ({
+      ...current,
+      customColors: { ...(current.customColors || themeColors[current.theme]), [key]: value },
+    }));
+  };
   return (
     <div
-      className={`app-shell theme-${preferences.theme} font-${preferences.font}${focusMode ? ' focus-mode' : ''}`}
+      className={`app-shell theme-${preferences.theme} font-${preferences.font} code-${preferences.codeTheme}${focusMode ? ' focus-mode' : ''}`}
       style={style}
       onDragEnter={(event) => { event.preventDefault(); dragDepth.current += 1; setDragActive(true); }}
       onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; }}
@@ -492,16 +509,20 @@ export default function App() {
             </button>
           </div>
           <div className="setting-group">
-            <label>Font</label>
+            <label htmlFor="reader-font">Font</label>
             <select
+              id="reader-font"
               value={preferences.font}
               onChange={(e) => setPreferences((current) => ({ ...current, font: e.target.value as Font, fontExplicit: true }))}
             >
               <option value="inter">Inter</option>
               <option value="source-serif">Source Serif 4</option>
               <option value="literata">Literata</option>
+              <option value="charter">Charter</option>
               <option value="atkinson">Atkinson Hyperlegible</option>
+              <option value="system-sans">System Sans</option>
               <option value="jetbrains">JetBrains Mono</option>
+              <option value="system-mono">System Mono</option>
             </select>
           </div>
           <div className="setting-group">
@@ -510,8 +531,14 @@ export default function App() {
               {themes.map((item) => (
                 <button
                   key={item.key}
+                  type="button"
                   className={`theme-choice ${preferences.theme === item.key ? 'active' : ''}`}
-                  onClick={() => setPreferences((current) => ({ ...current, theme: item.key }))}
+                  onClick={() => setPreferences((current) => ({
+                    ...current,
+                    theme: item.key,
+                    font: current.fontExplicit ? current.font : themeFonts[item.key],
+                    customColors: undefined,
+                  }))}
                 >
                   <i className={`swatch ${item.swatch}`} />
                   {item.label}
@@ -521,11 +548,12 @@ export default function App() {
           </div>
           <div className="setting-group">
             <div className="range-label">
-              <label>Text size</label>
+              <label htmlFor="text-size">Text size</label>
               <span>{preferences.size}px</span>
             </div>
             <input
               type="range"
+              id="text-size"
               min="15"
               max="23"
               value={preferences.size}
@@ -534,11 +562,12 @@ export default function App() {
           </div>
           <div className="setting-group">
             <div className="range-label">
-              <label>Reading width</label>
+              <label htmlFor="reading-width">Reading width</label>
               <span>{preferences.width}px</span>
             </div>
             <input
               type="range"
+              id="reading-width"
               min="600"
               max="900"
               value={preferences.width}
@@ -546,7 +575,62 @@ export default function App() {
               onChange={(e) => setPreferences((current) => ({ ...current, width: Number(e.target.value) }))}
             />
           </div>
+          <div className="setting-group">
+            <div className="range-label">
+              <label htmlFor="line-height">Line height</label>
+              <span>{preferences.lineHeight.toFixed(2)}</span>
+            </div>
+            <input
+              id="line-height"
+              type="range"
+              min="1.35"
+              max="2.1"
+              step="0.05"
+              value={preferences.lineHeight}
+              onChange={(event) => setPreferences((current) => ({ ...current, lineHeight: Number(event.target.value) }))}
+            />
+          </div>
+          <div className="setting-group">
+            <label htmlFor="code-theme">Code-block theme</label>
+            <select
+              id="code-theme"
+              value={preferences.codeTheme}
+              onChange={(event) => setPreferences((current) => ({ ...current, codeTheme: event.target.value as 'auto' | 'light' | 'dark' }))}
+            >
+              <option value="auto">Auto</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+          <fieldset className="setting-group color-controls">
+            <legend>Custom colors</legend>
+            {([
+              ['background', 'Background'],
+              ['text', 'Text'],
+              ['accent', 'Accent / links'],
+            ] as const).map(([key, label]) => (
+              <label key={key}>
+                <span>{label}</span>
+                <input type="color" value={selectedColors[key]} onChange={(event) => setCustomColor(key, event.target.value)} />
+              </label>
+            ))}
+            {lowContrast && <p className="contrast-warning" role="alert">Background and text contrast is below the recommended 4.5:1 ratio.</p>}
+            <button
+              type="button"
+              className="reset-button compact"
+              onClick={() => setPreferences((current) => ({
+                ...current,
+                font: themeFonts[current.theme],
+                fontExplicit: false,
+                codeTheme: 'auto',
+                customColors: undefined,
+              }))}
+            >
+              Reset theme defaults
+            </button>
+          </fieldset>
           <button
+            type="button"
             className="reset-button"
             onClick={() => {
               localStorage.removeItem('markdown-reader:preferences');
@@ -554,7 +638,7 @@ export default function App() {
               setPreferences({ ...defaultPreferences });
             }}
           >
-            Reset preferences
+            Reset all preferences
           </button>
         </section>
       )}

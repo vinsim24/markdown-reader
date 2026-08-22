@@ -372,6 +372,21 @@ button {
   padding: 0;
   font-size: inherit;
 }
+.code-light .reader pre {
+  background: #f0f2f2;
+  color: #18201d;
+  border: 1px solid var(--border);
+}
+.code-light .reader pre code {
+  color: #18201d;
+}
+.code-dark .reader pre {
+  background: #111516;
+  color: #f2f7f4;
+}
+.code-dark .reader pre code {
+  color: #f2f7f4;
+}
 .reader a {
   color: var(--accent);
   text-underline-offset: 3px;
@@ -543,6 +558,12 @@ button {
   display: block;
   margin-bottom: 9px;
 }
+.setting-group legend {
+  padding: 0;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+}
 .setting-group select {
   width: 100%;
   border: 1px solid var(--border);
@@ -618,6 +639,39 @@ input[type="range"] {
   width: 100%;
   padding: 10px;
   font-size: 11px;
+}
+.color-controls {
+  border: 0;
+  padding: 0;
+}
+.color-controls > label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.color-controls input[type="color"] {
+  width: 44px;
+  height: 30px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+}
+.contrast-warning {
+  padding: 9px 10px;
+  border-radius: 7px;
+  background: #fff0cc;
+  color: #5d4300;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.reset-button.compact {
+  margin-top: 10px;
+  padding: 8px;
+  font-size: 10px;
 }
 .overlay {
   position: fixed;
@@ -711,14 +765,23 @@ body[data-font="source-serif"] .reader {
 body[data-font="literata"] .reader {
   font-family: Literata, serif;
 }
+body[data-font="charter"] .reader {
+  font-family: Charter, "Bitstream Charter", "Iowan Old Style", Georgia, serif;
+}
 body[data-font="atkinson"] .reader {
   font-family: "Atkinson Hyperlegible", sans-serif;
+}
+body[data-font="system-sans"] .reader {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 body[data-font="jetbrains"] .reader {
   font-family: "JetBrains Mono", monospace;
 }
 body[data-font="inter"] .reader {
   font-family: Inter, system-ui, sans-serif;
+}
+body[data-font="system-mono"] .reader {
+  font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
 }
 @media (max-width: 850px) {
   .workspace {
