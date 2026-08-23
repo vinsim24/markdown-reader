@@ -2,7 +2,7 @@
   "name": "markdown-reader",
   "description": "A private, responsive Markdown reader for comfortable local reading.",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "MIT",
   "type": "module",
   "scripts": {

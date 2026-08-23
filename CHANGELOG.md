@@ -2,7 +2,7 @@
 
 Markdown Reader follows [Semantic Versioning](https://semver.org/). This file records user-visible changes beginning with the editor milestone.
 
-## [0.2.0] - Unreleased
+## [0.3.0] - 2026-08-23
 
 ### Added
 
@@ -14,4 +14,4 @@ Markdown Reader follows [Semantic Versioning](https://semver.org/). This file re
 
 ### Changed
 
-- The package and documented application version are now `0.2.0`.
+- The package and documented application version are now `0.3.0`.

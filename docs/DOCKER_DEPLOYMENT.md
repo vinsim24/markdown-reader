@@ -33,10 +33,18 @@ docker pull vinsim24/markdown-reader:latest
 docker run --detach --rm --name markdown-reader -p 8787:8080 vinsim24/markdown-reader:latest
 ```
 
-Release images receive both an immutable Git commit tag and `latest`. To publish the current commit:
+The current release is `0.3.0`. Pin this tag for reproducible deployments:
 
 ```bash
-docker build -t vinsim24/markdown-reader:<git-commit> -t vinsim24/markdown-reader:latest .
+docker pull vinsim24/markdown-reader:0.3.0
+docker run --detach --rm --name markdown-reader -p 8787:8080 vinsim24/markdown-reader:0.3.0
+```
+
+Release images receive a semantic version tag, an immutable Git commit tag, and `latest`. The source commit also receives an annotated Git tag such as `v0.3.0`. To publish a release:
+
+```bash
+docker build -t vinsim24/markdown-reader:<version> -t vinsim24/markdown-reader:<git-commit> -t vinsim24/markdown-reader:latest .
+docker push vinsim24/markdown-reader:<version>
 docker push vinsim24/markdown-reader:<git-commit>
 docker push vinsim24/markdown-reader:latest
 ```

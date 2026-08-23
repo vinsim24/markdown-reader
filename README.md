@@ -1,6 +1,6 @@
 # Markdown Reader
 
-[![Version](https://img.shields.io/badge/version-0.2.0-315f8c)](package.json)
+[![Version](https://img.shields.io/badge/version-0.3.0-315f8c)](package.json)
 [![CI](https://github.com/vinsim24/markdown-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/vinsim24/markdown-reader/actions/workflows/ci.yml)
 [![Node.js 24](https://img.shields.io/badge/Node.js-24-3c873a?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/vinsim24/markdown-reader?logo=docker)](https://hub.docker.com/r/vinsim24/markdown-reader)
@@ -73,6 +73,13 @@ Run the published image:
 ```bash
 docker pull vinsim24/markdown-reader:latest
 docker run --rm -p 8787:8080 vinsim24/markdown-reader:latest
+```
+
+For a reproducible deployment, pin the current release instead of `latest`:
+
+```bash
+docker pull vinsim24/markdown-reader:0.3.0
+docker run --rm -p 8787:8080 vinsim24/markdown-reader:0.3.0
 ```
 
 Or build it from source:
