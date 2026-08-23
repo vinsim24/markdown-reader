@@ -1,5 +1,11 @@
 # Markdown Reader
 
+[![Version](https://img.shields.io/badge/version-0.1.0-315f8c)](package.json)
+[![CI](https://github.com/vinsim24/markdown-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/vinsim24/markdown-reader/actions/workflows/ci.yml)
+[![Node.js 24](https://img.shields.io/badge/Node.js-24-3c873a?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/vinsim24/markdown-reader?logo=docker)](https://hub.docker.com/r/vinsim24/markdown-reader)
+[![License: MIT](https://img.shields.io/badge/License-MIT-d8a657.svg)](LICENSE)
+
 A private, responsive Markdown reader for comfortable local reading. The Ink & Paper interface combines calm typography, focused navigation, document tabs, and six accessible reading themes. Documents are processed entirely in the browser and are never uploaded.
 
 ## MVP features
