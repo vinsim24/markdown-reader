@@ -1,6 +1,6 @@
 # Markdown Reader
 
-[![Version](https://img.shields.io/badge/version-0.1.0-315f8c)](package.json)
+[![Version](https://img.shields.io/badge/version-0.3.0-315f8c)](package.json)
 [![CI](https://github.com/vinsim24/markdown-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/vinsim24/markdown-reader/actions/workflows/ci.yml)
 [![Node.js 24](https://img.shields.io/badge/Node.js-24-3c873a?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/vinsim24/markdown-reader?logo=docker)](https://hub.docker.com/r/vinsim24/markdown-reader)
@@ -17,6 +17,8 @@ A private, responsive Markdown reader for comfortable local reading. The Ink & P
 - Follow safe relative Markdown links and load relative images from the granted folder.
 - Render sanitized GitHub-flavored Markdown, including tables, task lists, blockquotes, syntax-highlighted code blocks with copy controls, KaTeX math, safe inline HTML, and themed Mermaid diagrams with viewing and export controls.
 - Switch any document to an interactive Markmap mind-map view with pan, zoom, folding, full-screen viewing, and PNG/SVG export.
+- Move between Preview, Write, responsive Split, and Mind map modes. The lazy-loaded CodeMirror 6 editor updates the sanitized preview live, the keyboard-accessible Split divider remembers its ratio per tab, and draft, selection, and scroll positions are preserved.
+- See unsaved markers in tabs and receive a confirmation before closing or replacing a changed session draft.
 - Open bundled Markdown, Obsidian, and Markmap examples without uploading anything.
 - Search with match highlighting, current-section navigation, and Focus mode.
 - Persist validated reading preferences locally: six themes, eight font options, size, width, line height, custom colors, and code theme.
@@ -37,7 +39,8 @@ Known limitations:
 - Drag-and-drop supports individual Markdown files, not folders.
 - Folder access must be granted again after reloading the page.
 - Directory-input fallback behavior varies slightly by browser.
-- Tauri packaging, editing/saving, cloud sync, bookmarks, history, and export are post-MVP work.
+- Editor drafts are session-only. Save, Save As, and Download are planned next; closing or reloading discards confirmed changes.
+- Tauri packaging, cloud sync, bookmarks, history, and broader export are post-MVP work.
 
 ## Development
 
@@ -69,17 +72,24 @@ Run the published image:
 
 ```bash
 docker pull vinsim24/markdown-reader:latest
-docker run --rm -p 8080:8080 vinsim24/markdown-reader:latest
+docker run --rm -p 8787:8080 vinsim24/markdown-reader:latest
+```
+
+For a reproducible deployment, pin the current release instead of `latest`:
+
+```bash
+docker pull vinsim24/markdown-reader:0.3.0
+docker run --rm -p 8787:8080 vinsim24/markdown-reader:0.3.0
 ```
 
 Or build it from source:
 
 ```bash
 docker build -t markdown-reader:local .
-docker run --rm -p 8080:8080 markdown-reader:local
+docker run --rm -p 8787:8080 markdown-reader:local
 ```
 
-Open <http://localhost:8080>.
+Open <http://localhost:8787>. Port `8787` is the recommended host default because `8080` is commonly occupied; the container continues to listen on its unprivileged internal port `8080`, and any free host port can be mapped to it.
 
 The reproducible multi-stage image builds with Node 24 and serves through unprivileged Nginx with a health endpoint, SPA routing, immutable asset caching, and security headers. It contains no user files and requires no host filesystem mount. See [Docker deployment](docs/DOCKER_DEPLOYMENT.md) for health checks, container browser testing, and release tagging.
 
@@ -87,4 +97,4 @@ The reproducible multi-stage image builds with Node 24 and serves through unpriv
 
 Inter, Source Serif 4, Literata, Atkinson Hyperlegible, and JetBrains Mono are bundled through Fontsource packages for offline use. Their upstream font licenses are the SIL Open Font License. Charter, System Sans, and System Mono use locally installed/system fallback stacks and add no network dependency.
 
-See [the product specification](docs/PRODUCT_SPEC.md), [MVP implementation plan](docs/MVP_IMPLEMENTATION_PLAN.md), and [ordered post-MVP implementation plan](docs/POST_MVP_IMPLEMENTATION_PLAN.md) for product scope and status.
+See the [changelog](CHANGELOG.md), [product specification](docs/PRODUCT_SPEC.md), [MVP implementation plan](docs/MVP_IMPLEMENTATION_PLAN.md), and [ordered post-MVP implementation plan](docs/POST_MVP_IMPLEMENTATION_PLAN.md) for product scope and status.

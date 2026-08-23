@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -8,6 +9,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { EditorView } from 'codemirror';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 
@@ -31,6 +33,15 @@ vi.mock('markmap-view', () => ({
   },
 }));
 
+vi.mock('mermaid', () => ({
+  default: {
+    initialize: vi.fn(),
+    render: vi.fn().mockResolvedValue({
+      svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 60"></svg>',
+    }),
+  },
+}));
+
 class IntersectionObserverMock {
   observe = vi.fn();
   disconnect = vi.fn();
@@ -41,6 +52,13 @@ beforeEach(() => {
   localStorage.clear();
   vi.stubGlobal('IntersectionObserver', IntersectionObserverMock);
   vi.stubGlobal('scrollTo', vi.fn());
+  Range.prototype.getBoundingClientRect = () => new DOMRect(0, 0, 0, 16);
+  Range.prototype.getClientRects = () =>
+    ({
+      length: 0,
+      item: () => null,
+      [Symbol.iterator]: function* () {},
+    }) as DOMRectList;
 });
 
 afterEach(() => {
@@ -123,7 +141,7 @@ describe('critical reader interactions', () => {
         .getAttribute('aria-pressed')
     ).toBe('true');
 
-    await user.click(screen.getByRole('button', { name: 'Reader' }));
+    await user.click(screen.getByRole('button', { name: 'Preview' }));
     expect(
       await screen.findByRole('heading', { name: 'Markmap Examples' })
     ).not.toBeNull();
@@ -288,6 +306,85 @@ describe('critical reader interactions', () => {
     expect(
       screen.queryByRole('navigation', { name: 'Open documents' })
     ).toBeNull();
+  });
+
+  it('edits a session draft and protects it from accidental closing', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    const picker = container.querySelector<HTMLInputElement>(
+      'input[type="file"]:not([multiple])'
+    );
+    if (!picker) throw new Error('File picker was not rendered.');
+    fireEvent.change(picker, {
+      target: { files: [new File(['# Original'], 'draft.md')] },
+    });
+
+    await screen.findByRole('heading', { name: 'Original' });
+    await user.click(screen.getByRole('button', { name: 'Write' }));
+    const editor = await screen.findByRole('textbox', {
+      name: 'Markdown editor for draft.md',
+    });
+    const editorView = EditorView.findFromDOM(editor);
+    if (!editorView) throw new Error('CodeMirror editor was not initialized.');
+    act(() => {
+      editorView.dispatch({
+        changes: { from: 0, insert: 'Edited in session\n\n' },
+      });
+      editorView.scrollDOM.scrollTop = 72;
+      fireEvent.scroll(editorView.scrollDOM);
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', {
+          name: /draft\.md.*Unsaved changes/,
+        })
+      ).not.toBeNull()
+    );
+    await user.click(screen.getByRole('button', { name: 'Split' }));
+    const splitEditor = await screen.findByRole('textbox', {
+      name: 'Markdown editor for draft.md',
+    });
+    const splitEditorView = EditorView.findFromDOM(splitEditor);
+    expect(splitEditorView?.scrollDOM.scrollTop).toBe(72);
+    const resizeHandle = screen.getAllByRole('separator', {
+      name: 'Resize split panes',
+    })[0];
+    resizeHandle.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(resizeHandle.getAttribute('aria-valuenow')).toBe('55');
+    const preview = screen.getByLabelText('Live preview');
+    preview.scrollTop = 96;
+    fireEvent.scroll(preview);
+    expect(
+      await screen.findByText('Edited in session', { selector: '.reader p' })
+    ).not.toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Preview' }));
+    expect(
+      await screen.findByText('Edited in session', { selector: '.reader p' })
+    ).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Split' }));
+    await waitFor(() =>
+      expect(screen.getByLabelText('Live preview').scrollTop).toBe(96)
+    );
+    expect(
+      screen
+        .getAllByRole('separator', { name: 'Resize split panes' })[0]
+        .getAttribute('aria-valuenow')
+    ).toBe('55');
+
+    const confirm = vi
+      .spyOn(window, 'confirm')
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true);
+    await user.click(screen.getByRole('button', { name: 'Close draft.md' }));
+    expect(screen.getByRole('heading', { name: 'Original' })).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Close draft.md' }));
+    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(
+      screen.getByRole('heading', { name: 'Markdown, made comfortable.' })
+    ).not.toBeNull();
   });
 
   it('renders math and allowed inline HTML while removing unsafe HTML', async () => {

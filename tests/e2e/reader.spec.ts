@@ -174,7 +174,7 @@ test('switches the active document to an interactive Markmap view', async ({
     )
   ).toEqual([]);
 
-  await page.getByRole('button', { name: 'Reader' }).click();
+  await page.getByRole('button', { name: 'Preview' }).click();
   await expect(
     page.getByRole('heading', { name: 'Markmap Examples' })
   ).toBeVisible();
@@ -263,6 +263,98 @@ test('opens, switches, and closes document tabs', async ({ page }) => {
   await expect(
     page.getByRole('navigation', { name: 'Open documents' })
   ).toBeHidden();
+});
+
+test('@a11y edits a session draft and protects it from accidental closing', async ({
+  page,
+}) => {
+  await page.locator('input[type="file"]:not([multiple])').setInputFiles({
+    name: 'draft.md',
+    mimeType: 'text/markdown',
+    buffer: Buffer.from('# Original\n\nA local draft.'),
+  });
+  await page.getByRole('button', { name: 'Write', exact: true }).click();
+
+  const editor = page.getByRole('textbox', {
+    name: 'Markdown editor for draft.md',
+  });
+  await expect(editor).toBeVisible();
+  await editor.press('Control+End');
+  await editor.pressSequentially('\n\n## Added section\n\nBrowser draft.');
+  const editorWorkspace = page.getByRole('region', {
+    name: 'Writing draft.md',
+  });
+  await expect(editorWorkspace.getByRole('status')).toHaveText(
+    'Unsaved changes'
+  );
+  await expect(
+    page.getByRole('button', { name: /draft\.md.*Unsaved changes/ })
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: 'Split' }).click();
+  const splitWorkspace = page.getByRole('region', {
+    name: 'Split view for draft.md',
+  });
+  await expect(splitWorkspace.getByLabel('Live preview')).toContainText(
+    'Browser draft.'
+  );
+  await expect(
+    page.getByRole('heading', { name: 'Added section' })
+  ).toBeVisible();
+  await expect(
+    splitWorkspace.getByLabel('Live preview').getByText('Browser draft.')
+  ).toBeVisible();
+
+  const resizeHandle = splitWorkspace.getByRole('separator', {
+    name: 'Resize split panes',
+  });
+  await resizeHandle.focus();
+  await resizeHandle.press('ArrowRight');
+  await expect(resizeHandle).toHaveAttribute('aria-valuenow', '55');
+  const dividerBounds = await resizeHandle.boundingBox();
+  if (!dividerBounds) throw new Error('Split divider was not measurable.');
+  await page.mouse.move(
+    dividerBounds.x + dividerBounds.width / 2,
+    dividerBounds.y + dividerBounds.height / 2
+  );
+  await page.mouse.down();
+  await page.mouse.move(dividerBounds.x + 90, dividerBounds.y + 10);
+  await page.mouse.up();
+  expect(Number(await resizeHandle.getAttribute('aria-valuenow'))).toBeGreaterThan(
+    55
+  );
+
+  const splitAccessibility = await new AxeBuilder({ page })
+    .include('.split-workspace')
+    .analyze();
+  expect(
+    splitAccessibility.violations.filter((violation) =>
+      ['serious', 'critical'].includes(violation.impact || '')
+    )
+  ).toEqual([]);
+
+  await page.getByRole('button', { name: 'Write', exact: true }).click();
+  const accessibility = await new AxeBuilder({ page })
+    .include('.editor-workspace')
+    .analyze();
+  expect(
+    accessibility.violations.filter((violation) =>
+      ['serious', 'critical'].includes(violation.impact || '')
+    )
+  ).toEqual([]);
+
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain('Discard unsaved changes to draft.md?');
+    await dialog.dismiss();
+  });
+  await page.getByRole('button', { name: 'Close draft.md' }).click();
+  await expect(editor).toBeVisible();
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Close draft.md' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Markdown, made comfortable.' })
+  ).toBeVisible();
 });
 
 test('opens the directory fallback and resolves local content', async ({
@@ -488,6 +580,53 @@ for (const viewport of [
       'scrollWidth',
       viewport.width
     );
+  });
+}
+
+for (const viewport of [
+  { name: 'desktop', width: 1280, height: 800 },
+  { name: 'tablet', width: 800, height: 900 },
+  { name: 'mobile', width: 375, height: 740 },
+]) {
+  test(`${viewport.name} writing modes stay inside the viewport`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.locator('input[type="file"]:not([multiple])').setInputFiles({
+      name: 'responsive-editor.md',
+      mimeType: 'text/markdown',
+      buffer: Buffer.from('# Responsive editor\n\nEdit locally.'),
+    });
+    if (viewport.name === 'mobile') {
+      await expect(page.getByRole('button', { name: 'Split' })).toBeHidden();
+    } else {
+      await page.getByRole('button', { name: 'Split' }).click();
+      await expect(
+        page.getByRole('region', {
+          name: 'Split view for responsive-editor.md',
+        })
+      ).toBeVisible();
+      if (viewport.name === 'desktop') {
+        await page.setViewportSize({ width: 375, height: 740 });
+        await expect(
+          page.getByRole('button', { name: 'Preview' })
+        ).toHaveAttribute('aria-pressed', 'true');
+        await expect(page.getByRole('button', { name: 'Split' })).toBeHidden();
+        await page.setViewportSize(viewport);
+      }
+    }
+    await page.getByRole('button', { name: 'Write', exact: true }).click();
+    await expect(
+      page.getByRole('textbox', {
+        name: 'Markdown editor for responsive-editor.md',
+      })
+    ).toBeVisible();
+    await expect(page.locator('body')).toHaveJSProperty(
+      'scrollWidth',
+      viewport.width
+    );
+    const workspaceWidth = await page
+      .locator('.main-area')
+      .evaluate((element) => element.getBoundingClientRect().width);
+    expect(workspaceWidth).toBeGreaterThanOrEqual(viewport.width * 0.8);
   });
 }
 

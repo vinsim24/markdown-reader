@@ -39,7 +39,7 @@ This document records the approved post-MVP feature order. Product requirements 
 
 - Provide an interactive mind-map view of the active Markdown tab.
 - Support zoom, pan, branch folding, full screen, and SVG/PNG export.
-- Keep Reader and Mind Map as alternate views of the same session document.
+- Keep Preview and Mind map as alternate views of the same session document.
 - Include a bundled example covering nested headings, lists, tasks, links, code, and foldable branches.
 
 ## Priorities 7–13 — Ink & Paper Revamp — Approved
@@ -49,12 +49,12 @@ The product and security review for editing is complete. The authoritative scope
 7. Brand foundation and favicon
 8. Product-shell refinement
 9. Theme refinement
-10. Editor foundation with CodeMirror 6
-11. Responsive Split view and live preview
+10. Editor foundation with CodeMirror 6 — Complete
+11. Responsive Split view and live preview — Complete
 12. Capability-aware Save, Save As, Download, and dirty-state safeguards
 13. Editor formatting toolbar and accessibility polish
 
-Implement and verify one priority at a time. Editing remains session-only by default, never uploads content, never silently overwrites input-selected files, and does not persist filesystem handles.
+Implement and verify one priority at a time. The editor foundation and responsive Split workflow are complete on the `feature/editor-foundation` workstream; safe save and toolbar work remain separate milestones. Editing remains session-only by default, never uploads content, never silently overwrites input-selected files, and does not persist filesystem handles.
 
 ## Verification gates
 

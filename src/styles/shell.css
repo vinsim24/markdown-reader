@@ -150,6 +150,25 @@
   place-items: center;
 }
 
+.document-tab-dirty {
+  flex: 0 0 auto;
+  margin-left: -2px;
+  color: var(--accent-strong);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .workspace {
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   min-height: calc(100dvh - var(--header-height));
@@ -332,6 +351,137 @@
   color: var(--accent-strong);
 }
 
+.view-toggle button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.editor-workspace {
+  position: relative;
+  height: calc(100dvh - var(--header-height) - var(--tabs-height) - 58px);
+  min-height: 420px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.split-workspace {
+  display: grid;
+  grid-template-columns:
+    minmax(0, var(--split-ratio)) 7px minmax(0, 1fr);
+}
+
+.split-pane {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.split-editor-pane {
+  border-right: 0;
+}
+
+.split-divider {
+  position: relative;
+  z-index: 3;
+  border: 0;
+  background: var(--border);
+  touch-action: none;
+}
+
+.split-divider::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  background: var(--muted);
+  opacity: 0.55;
+}
+
+.split-divider-desktop {
+  cursor: col-resize;
+}
+
+.split-divider-desktop::after {
+  top: 50%;
+  left: 2px;
+  width: 3px;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
+.split-divider-tablet {
+  display: none;
+}
+
+.split-divider:hover,
+.split-divider:focus-visible {
+  background: var(--accent-soft);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.resizing-split {
+  cursor: col-resize;
+  user-select: none;
+}
+
+.split-preview-pane {
+  overflow: auto;
+  background: var(--surface);
+  overscroll-behavior: contain;
+}
+
+.split-preview-pane:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.split-preview-pane .reader {
+  width: min(var(--reading-width), calc(100% - 56px));
+  min-height: 100%;
+  margin: 0 auto;
+  padding-top: 40px;
+  padding-bottom: 56px;
+}
+
+.editor-status {
+  position: absolute;
+  z-index: 2;
+  top: 10px;
+  right: 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+  pointer-events: none;
+}
+
+.markdown-editor,
+.markdown-editor .cm-editor {
+  height: 100%;
+}
+
+.editor-loading {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.markdown-editor .cm-searchMatch {
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.markdown-editor .cm-searchMatch.cm-searchMatch-selected {
+  background: var(--accent-soft);
+}
+
 .settings-panel {
   top: var(--header-height);
   right: 0;
@@ -487,8 +637,49 @@
 }
 
 @media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .sidebar {
     top: calc(var(--header-height) + var(--tabs-height));
+  }
+
+  .split-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows:
+      minmax(180px, var(--split-ratio)) 7px minmax(180px, 1fr);
+    height: calc(100dvh - var(--header-height) - var(--tabs-height) - 58px);
+    min-height: 420px;
+  }
+
+  .split-editor-pane {
+    border-right: 0;
+  }
+
+  .split-preview-pane {
+    min-height: 0;
+  }
+
+  .split-divider-desktop {
+    display: none;
+  }
+
+  .split-divider-tablet {
+    display: block;
+    cursor: row-resize;
+  }
+
+  .split-divider-tablet::after {
+    top: 2px;
+    left: 50%;
+    width: 44px;
+    height: 3px;
+    transform: translateX(-50%);
+  }
+
+  .resizing-split {
+    cursor: row-resize;
   }
 }
 
@@ -556,5 +747,41 @@
     margin-left: -20px;
     padding-right: 20px;
     padding-left: 20px;
+  }
+
+  .reader-actions {
+    gap: 4px;
+  }
+
+  .view-toggle button {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .view-toggle button span,
+  .focus-action span,
+  .reading-action span {
+    display: none;
+  }
+
+  .focus-action,
+  .reading-action {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+  }
+
+  .editor-workspace {
+    height: calc(100dvh - var(--header-height) - var(--tabs-height) - 62px);
+    min-height: 360px;
+  }
+
+  .split-action {
+    display: none !important;
+  }
+
+  .markdown-editor .cm-line {
+    padding-right: 16px;
+    padding-left: 16px;
   }
 }
