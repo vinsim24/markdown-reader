@@ -124,6 +124,9 @@ body[data-theme="dark"] .app-shell.code-auto {
   align-items: center;
   gap: 9px;
 }
+.topbar-actions {
+  min-width: 0;
+}
 .toolbar-button,
 .subtle-button,
 .icon-button {
@@ -137,6 +140,7 @@ body[data-theme="dark"] .app-shell.code-auto {
   padding: 9px 13px;
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
 }
 .toolbar-button span {
   font-size: 18px;
@@ -154,6 +158,76 @@ body[data-theme="dark"] .app-shell.code-auto {
 .icon-button:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+.toolbar-button:active,
+.subtle-button:active,
+.icon-button:active {
+  transform: translateY(1px);
+}
+.header-primary-action {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--surface);
+}
+.header-primary-action:hover {
+  border-color: var(--accent);
+  color: var(--surface);
+  filter: brightness(0.95);
+}
+.source-menu {
+  position: relative;
+}
+.source-menu-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(330px, calc(100vw - 24px));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.source-menu-label {
+  margin: 6px 10px 5px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.source-menu-panel button {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+.source-menu-panel button:hover,
+.source-menu-panel button:focus-visible {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.source-menu-panel strong,
+.source-menu-panel span {
+  display: block;
+}
+.source-menu-panel strong {
+  font-size: 12px;
+}
+.source-menu-panel span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+.source-menu-divider {
+  height: 1px;
+  margin: 6px 8px;
+  border: 0;
+  background: var(--border);
 }
 .document-tabs {
   position: sticky;
@@ -378,15 +452,21 @@ body[data-theme="dark"] .app-shell.code-auto {
   margin: 24px auto 0;
 }
 .welcome {
-  width: min(680px, calc(100% - 40px));
+  width: min(980px, calc(100% - 48px));
   margin: auto;
-  padding: clamp(48px, 8vw, 88px) clamp(28px, 7vw, 72px);
-  text-align: center;
+  padding: clamp(48px, 7vw, 82px) 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  align-items: center;
+  gap: clamp(52px, 8vw, 110px);
+}
+.welcome-intro {
+  min-width: 0;
 }
 .welcome-mark {
   width: 68px;
   height: 68px;
-  margin: 0 auto 28px;
+  margin: 0 0 28px;
   border: 1px solid var(--border);
   border-radius: 20px;
   background: var(--accent-soft);
@@ -399,20 +479,21 @@ body[data-theme="dark"] .app-shell.code-auto {
 }
 .welcome h1 {
   margin: 12px 0 18px;
-  font-size: clamp(34px, 6vw, 54px);
+  max-width: 620px;
+  font-size: clamp(38px, 5vw, 58px);
   line-height: 1.04;
   letter-spacing: -0.055em;
 }
 .welcome-copy {
   max-width: 510px;
-  margin: 0 auto;
+  margin: 0;
   color: var(--muted);
   font-size: 16px;
   line-height: 1.65;
 }
 .welcome-actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 10px;
   margin-top: 32px;
 }
@@ -438,15 +519,76 @@ body[data-theme="dark"] .app-shell.code-auto {
 .welcome-secondary:hover {
   filter: brightness(0.96);
 }
+.welcome-primary:active,
+.welcome-secondary:active,
+.welcome-example-action:active {
+  transform: translateY(1px);
+}
 .welcome-primary:disabled,
 .welcome-secondary:disabled {
   cursor: wait;
   opacity: 0.65;
 }
 .welcome-drop {
-  margin: 18px 0 0;
+  margin: 12px 0 0;
   color: var(--muted);
   font-size: 12px;
+}
+.welcome-link-action {
+  border: 0;
+  padding: 0;
+  margin-top: 18px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.welcome-examples {
+  border-left: 1px solid var(--border);
+  padding-left: clamp(28px, 5vw, 52px);
+}
+.welcome-examples-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -0.025em;
+}
+.welcome-examples-copy {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.welcome-example-action {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 15px 2px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+.welcome-example-action:first-of-type {
+  border-top: 1px solid var(--border);
+}
+.welcome-example-action:hover,
+.welcome-example-action:focus-visible {
+  color: var(--accent);
+}
+.welcome-example-action strong,
+.welcome-example-action span {
+  display: block;
+}
+.welcome-example-action strong {
+  font-size: 13px;
+}
+.welcome-example-action span {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
 }
 .reader-toolbar {
   height: 62px;
@@ -1528,10 +1670,21 @@ body[data-font="system-mono"] .reader {
     margin-right: 22px;
   }
 }
-@media (max-width: 640px) {
-  .secondary-example-action {
-    display: none;
+@media (max-width: 780px) {
+  .welcome {
+    width: min(620px, calc(100% - 40px));
+    grid-template-columns: 1fr;
+    gap: 44px;
+    align-items: start;
   }
+  .welcome-examples {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+    padding-top: 28px;
+    padding-left: 0;
+  }
+}
+@media (max-width: 640px) {
   .reader-toolbar {
     height: auto;
     min-height: 62px;
@@ -1594,6 +1747,16 @@ body[data-font="system-mono"] .reader {
   .toolbar-button span {
     font-size: 20px;
   }
+  .source-menu-trigger {
+    width: 54px;
+    padding: 0 9px;
+    font-size: 11px;
+  }
+  .source-menu-panel {
+    position: fixed;
+    top: 58px;
+    right: 12px;
+  }
   .reader h1 {
     font-size: 34px;
   }
@@ -1602,8 +1765,9 @@ body[data-font="system-mono"] .reader {
     padding-top: 42px;
   }
   .welcome {
-    padding-right: 8px;
-    padding-left: 8px;
+    width: min(100% - 32px, 620px);
+    padding: 44px 0;
+    gap: 38px;
   }
   .welcome-actions {
     flex-direction: column;

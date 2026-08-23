@@ -1,4 +1,5 @@
 import type { MouseEvent, RefObject } from 'react';
+import SourceMenu from './SourceMenu';
 
 interface AppHeaderProps {
   fileInput: RefObject<HTMLInputElement | null>;
@@ -70,47 +71,25 @@ export default function AppHeader({
         )}
         <button
           type="button"
-          className="toolbar-button"
-          onClick={onOpenCheatSheet}
-        >
-          <span>▤</span> Cheat sheet
-        </button>
-        <button
-          type="button"
-          className="toolbar-button secondary-example-action"
-          onClick={onOpenObsidianGuide}
-        >
-          <span>◈</span> Obsidian guide
-        </button>
-        <button
-          type="button"
-          className="toolbar-button secondary-example-action"
-          onClick={onOpenMarkmapExamples}
-        >
-          <span>⌘</span> Markmap example
-        </button>
-        <button
-          type="button"
-          className="toolbar-button"
+          className="toolbar-button header-primary-action"
           onClick={() => fileInput.current?.click()}
         >
           <span>＋</span> Import Markdown
         </button>
         <button
           type="button"
-          className="toolbar-button"
-          onClick={onOpenUrlImport}
-        >
-          <span>◎</span> Import URL
-        </button>
-        <button
-          type="button"
-          className="toolbar-button"
+          className="toolbar-button header-folder-action"
           onClick={onOpenFolder}
           disabled={folderLoading}
         >
           <span>⌑</span> {folderLoading ? 'Scanning…' : 'Open folder'}
         </button>
+        <SourceMenu
+          onOpenCheatSheet={onOpenCheatSheet}
+          onOpenMarkmapExamples={onOpenMarkmapExamples}
+          onOpenObsidianGuide={onOpenObsidianGuide}
+          onOpenUrlImport={onOpenUrlImport}
+        />
         {hasDocument && (
           <button
             type="button"

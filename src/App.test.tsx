@@ -76,12 +76,8 @@ describe('critical reader interactions', () => {
       screen.getByText('Mermaid diagram', { selector: 'h2' })
     ).not.toBeNull();
 
-    const cheatSheetButton = Array.from(
-      container.querySelectorAll<HTMLButtonElement>('button')
-    ).find((button) => button.textContent?.includes('Cheat sheet'));
-    if (!cheatSheetButton)
-      throw new Error('Cheat sheet action was not rendered.');
-    await user.click(cheatSheetButton);
+    await user.click(screen.getByRole('button', { name: 'More' }));
+    await user.click(screen.getByRole('menuitem', { name: /Cheat sheet/ }));
     expect(container.querySelectorAll('.document-tab-select')).toHaveLength(1);
   });
 
