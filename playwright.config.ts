@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const externalBaseUrl = process.env.PLAYWRIGHT_BASE_URL;
+const baseURL = externalBaseUrl ?? 'http://127.0.0.1:4173';
+
 export default defineConfig({
   testDir: './tests/e2e',
   outputDir: 'test-results',
@@ -8,14 +11,17 @@ export default defineConfig({
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
   ],
   use: {
-    baseURL: 'http://127.0.0.1:4173',
+    baseURL,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: {
-    command: 'node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4173',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: externalBaseUrl
+    ? undefined
+    : {
+        command:
+          'node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4173',
+        url: baseURL,
+        reuseExistingServer: !process.env.CI,
+      },
 });

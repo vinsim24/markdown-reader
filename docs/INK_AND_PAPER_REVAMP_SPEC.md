@@ -167,6 +167,8 @@ Brand tokens precede editor implementation so the editor is not styled twice. Se
 
 Deliver the visual Ink & Paper work, Docker verification, and editor milestones on focused branches. Merge each workstream through a reviewed pull request after its relevant verification passes. Complete and merge the visual revamp first, verify and document Docker deployment second, and begin editor implementation only after both are merged. Do not implement these priorities directly on `main`.
 
+Keep milestone branches after their pull requests are merged so the workstream history remains easy to inspect.
+
 ## Verification
 
 ### Unit and Component
