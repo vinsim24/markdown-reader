@@ -1,13 +1,35 @@
 import type { FolderWorkspace } from './fileAccess';
 
+export interface EditorSelection {
+  anchor: number;
+  head: number;
+}
+
+export type DocumentViewMode = 'reader' | 'split' | 'mindmap' | 'editor';
+
 export interface DocumentTab {
   activePath: string;
+  editorScrollTop: number;
+  editorSelection: EditorSelection;
   folder?: FolderWorkspace;
   id: string;
   markdown: string;
+  originalMarkdown: string;
+  previewScrollTop: number;
   scrollTop: number;
   sourceKey: string;
+  splitRatio: number;
   title: string;
+  viewMode: DocumentViewMode;
+}
+
+export interface DocumentTabInput {
+  activePath: string;
+  folder?: FolderWorkspace;
+  markdown: string;
+  sourceKey: string;
+  title: string;
+  viewMode?: DocumentViewMode;
 }
 
 export interface DocumentTabsState {
@@ -28,13 +50,29 @@ export type DocumentTabsAction =
 
 export const initialDocumentTabsState: DocumentTabsState = { tabs: [] };
 
+export const initialEditorSelection: EditorSelection = { anchor: 0, head: 0 };
+
 let tabSequence = 0;
 
 export function createDocumentTab(
-  document: Omit<DocumentTab, 'id' | 'scrollTop'>
+  document: DocumentTabInput
 ): DocumentTab {
   tabSequence += 1;
-  return { ...document, id: `document-tab-${tabSequence}`, scrollTop: 0 };
+  return {
+    ...document,
+    editorScrollTop: 0,
+    editorSelection: initialEditorSelection,
+    id: `document-tab-${tabSequence}`,
+    originalMarkdown: document.markdown,
+    previewScrollTop: 0,
+    scrollTop: 0,
+    splitRatio: 50,
+    viewMode: document.viewMode ?? 'reader',
+  };
+}
+
+export function isDocumentDirty(tab: DocumentTab) {
+  return tab.markdown !== tab.originalMarkdown;
 }
 
 export function documentTabsReducer(
@@ -47,6 +85,9 @@ export function documentTabsReducer(
         (tab) => tab.sourceKey === action.tab.sourceKey
       );
       if (existing) {
+        if (isDocumentDirty(existing)) {
+          return { ...state, activeId: existing.id };
+        }
         return {
           tabs: state.tabs.map((tab) =>
             tab.id === existing.id ? { ...action.tab, id: tab.id } : tab

@@ -8,8 +8,12 @@ import {
 } from 'react';
 import {
   createDocumentTab,
+  type DocumentViewMode,
   documentTabsReducer,
+  type EditorSelection,
+  initialEditorSelection,
   initialDocumentTabsState,
+  isDocumentDirty,
 } from '../lib/documentTabs';
 import {
   type FolderWorkspace,
@@ -33,6 +37,7 @@ interface SessionDocument {
   markdown: string;
   sourceKey: string;
   title: string;
+  viewMode?: DocumentViewMode;
 }
 
 function decodePathSafe(value: string) {
@@ -77,7 +82,13 @@ export function useDocumentSessions({
   const activePath = activeDocument?.activePath || '';
 
   const rememberActiveScroll = () => {
-    if (!activeDocument) return;
+    if (
+      !activeDocument ||
+      activeDocument.viewMode === 'editor' ||
+      activeDocument.viewMode === 'split'
+    ) {
+      return;
+    }
     dispatchDocuments({
       type: 'update',
       id: activeDocument.id,
@@ -93,23 +104,58 @@ export function useDocumentSessions({
   };
 
   const closeDocumentTab = (id: string) => {
+    const document = documents.tabs.find((tab) => tab.id === id);
+    if (
+      document &&
+      isDocumentDirty(document) &&
+      !window.confirm(`Discard unsaved changes to ${document.title}?`)
+    ) {
+      return false;
+    }
     if (id === documents.activeId) {
       rememberActiveScroll();
       resetDocumentUi();
     }
     dispatchDocuments({ type: 'close', id });
+    return true;
   };
 
   const closeAllDocuments = () => {
+    const dirtyCount = documents.tabs.filter(isDocumentDirty).length;
+    if (
+      dirtyCount > 0 &&
+      !window.confirm(
+        `Discard unsaved changes in ${dirtyCount} document${dirtyCount === 1 ? '' : 's'}?`
+      )
+    ) {
+      return false;
+    }
     dispatchDocuments({ type: 'closeAll' });
     resetDocumentUi();
     updateDocumentLocation();
     window.scrollTo({ top: 0 });
+    return true;
   };
 
   useEffect(() => {
-    window.scrollTo({ top: activeDocument?.scrollTop || 0 });
-  }, [activeDocument?.id]);
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!documents.tabs.some(isDocumentDirty)) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warnBeforeUnload);
+    return () => window.removeEventListener('beforeunload', warnBeforeUnload);
+  }, [documents.tabs]);
+
+  useEffect(() => {
+    window.scrollTo({
+      top:
+        activeDocument?.viewMode === 'editor' ||
+        activeDocument?.viewMode === 'split'
+          ? 0
+          : activeDocument?.scrollTop || 0,
+    });
+  }, [activeDocument?.id, activeDocument?.viewMode]);
 
   const openFile = (file: File) => {
     if (!/\.(md|markdown)$/i.test(file.name)) {
@@ -192,23 +238,41 @@ export function useDocumentSessions({
     if (!file) return;
     const sourceKey = `folder:${workspace.id}:${path}`;
     const existing = documents.tabs.find((tab) => tab.sourceKey === sourceKey);
-    rememberActiveScroll();
-    resetDocumentUi();
-    if (existing) dispatchDocuments({ type: 'select', id: existing.id });
-    else if (disposition === 'current' && activeDocument) {
+    if (existing) {
+      rememberActiveScroll();
+      resetDocumentUi();
+      dispatchDocuments({ type: 'select', id: existing.id });
+    } else if (disposition === 'current' && activeDocument) {
+      if (
+        isDocumentDirty(activeDocument) &&
+        !window.confirm(`Discard unsaved changes to ${activeDocument.title}?`)
+      ) {
+        return;
+      }
+      rememberActiveScroll();
+      resetDocumentUi();
+      const markdown = await file.text();
       dispatchDocuments({
         type: 'update',
         id: activeDocument.id,
         changes: {
           activePath: path,
+          editorScrollTop: 0,
+          editorSelection: initialEditorSelection,
           folder: workspace,
-          markdown: await file.text(),
+          markdown,
+          originalMarkdown: markdown,
+          previewScrollTop: 0,
           scrollTop: 0,
+          splitRatio: 50,
           sourceKey,
           title: path.split('/').at(-1) || path,
+          viewMode: 'reader',
         },
       });
     } else {
+      rememberActiveScroll();
+      resetDocumentUi();
       dispatchDocuments({
         type: 'open',
         tab: createDocumentTab({
@@ -306,6 +370,47 @@ export function useDocumentSessions({
     element?.setAttribute('directory', '');
   };
 
+  const setDocumentViewMode = (id: string, viewMode: DocumentViewMode) => {
+    if (id === documents.activeId) rememberActiveScroll();
+    dispatchDocuments({ type: 'update', id, changes: { viewMode } });
+  };
+
+  const updateEditorDocument = (
+    id: string,
+    markdown: string,
+    editorSelection: EditorSelection
+  ) => {
+    dispatchDocuments({
+      type: 'update',
+      id,
+      changes: { editorSelection, markdown },
+    });
+  };
+
+  const updateEditorScroll = (id: string, editorScrollTop: number) => {
+    dispatchDocuments({
+      type: 'update',
+      id,
+      changes: { editorScrollTop },
+    });
+  };
+
+  const updatePreviewScroll = (id: string, scrollTop: number) => {
+    dispatchDocuments({
+      type: 'update',
+      id,
+      changes: { previewScrollTop: scrollTop },
+    });
+  };
+
+  const updateSplitRatio = (id: string, splitRatio: number) => {
+    dispatchDocuments({
+      type: 'update',
+      id,
+      changes: { splitRatio },
+    });
+  };
+
   return {
     activateFolder,
     activeDocument,
@@ -323,6 +428,11 @@ export function useDocumentSessions({
     openFolderFile,
     openRelativeLink,
     selectDocumentTab,
+    setDocumentViewMode,
+    updateEditorDocument,
+    updateEditorScroll,
+    updatePreviewScroll,
+    updateSplitRatio,
     workspaceFromFileList,
   };
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import AppHeader from '../components/AppHeader';
 import DocumentTabs from '../components/DocumentTabs';
 import ReaderOverlays from '../components/ReaderOverlays';
@@ -37,9 +37,21 @@ export default function ReaderPage() {
   const readingMinutes = words ? Math.max(1, Math.ceil(words / 225)) : 0;
   const hasDocument = sessions.activeDocument !== undefined;
 
+  useEffect(() => {
+    if (!window.matchMedia || !sessions.activeDocument) return;
+    const phone = window.matchMedia('(max-width: 640px)');
+    const leaveSplitOnPhone = () => {
+      if (phone.matches && sessions.activeDocument?.viewMode === 'split') {
+        sessions.setDocumentViewMode(sessions.activeDocument.id, 'reader');
+      }
+    };
+    leaveSplitOnPhone();
+    phone.addEventListener('change', leaveSplitOnPhone);
+    return () => phone.removeEventListener('change', leaveSplitOnPhone);
+  }, [sessions.activeDocument?.id, sessions.activeDocument?.viewMode]);
+
   const closeAllDocuments = () => {
-    sessions.closeAllDocuments();
-    ui.setFocusMode(false);
+    if (sessions.closeAllDocuments()) ui.setFocusMode(false);
   };
   const openCheatSheet = () => {
     sessions.openSessionDocument({
@@ -63,8 +75,8 @@ export default function ReaderPage() {
       markdown: markmapExamplesMarkdown,
       sourceKey: 'bundled:markmap-examples',
       title: 'Markmap Examples.md',
+      viewMode: 'mindmap',
     });
-    ui.setViewMode('mindmap');
     ui.setSearchOpen(false);
   };
   const importFromUrl = async (url: string) => {
@@ -111,6 +123,7 @@ export default function ReaderPage() {
         onOpenSettings={ui.openSettings}
         onOpenUrlImport={ui.openUrlImport}
         onToggleSearch={() => ui.setSearchOpen(!ui.searchOpen)}
+        searchEnabled={sessions.activeDocument?.viewMode === 'reader'}
         searchOpen={ui.searchOpen}
         settingsOpen={ui.settings}
       />
@@ -131,6 +144,10 @@ export default function ReaderPage() {
         linkNotice={ui.linkNotice}
         navOpen={ui.nav}
         onDismissNotice={ui.dismissLinkNotice}
+        onEditorChange={sessions.updateEditorDocument}
+        onEditorScroll={sessions.updateEditorScroll}
+        onPreviewScroll={sessions.updatePreviewScroll}
+        onSplitRatioChange={sessions.updateSplitRatio}
         onEnterFocus={() => {
           ui.setFocusMode(true);
           ui.setNav(false);
@@ -153,14 +170,17 @@ export default function ReaderPage() {
         onSetNav={ui.setNav}
         onSetSearch={ui.setSearch}
         onSetViewMode={(viewMode) => {
-          ui.setViewMode(viewMode);
-          if (viewMode === 'mindmap') ui.setSearchOpen(false);
+          if (!sessions.activeDocument) return;
+          sessions.setDocumentViewMode(sessions.activeDocument.id, viewMode);
+          if (viewMode !== 'reader') ui.setSearchOpen(false);
+          if (viewMode === 'editor' || viewMode === 'split') {
+            ui.setFocusMode(false);
+          }
         }}
         readingMinutes={readingMinutes}
         search={ui.search}
         searchOpen={ui.searchOpen}
         theme={reading.preferences.theme}
-        viewMode={ui.viewMode}
         words={words}
       />
       <ReaderOverlays

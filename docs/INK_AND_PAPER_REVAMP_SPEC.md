@@ -114,10 +114,10 @@ The separate product and security review previously required by the roadmap is s
 ### Editing Model
 
 - Use CodeMirror 6 as a lazily loaded Markdown editor. Do not build a handwritten editor or use a plain textarea as the production editor.
-- Provide three modes for the active document: **Reader**, **Split**, and **Editor**.
-- Desktop Split uses an editor and live preview side by side. A simple stable ratio is acceptable in the first milestone; resizing can follow after the interaction is proven.
+- Provide four modes for the active document: **Preview**, **Write**, **Split**, and **Mind map**.
+- Desktop Split uses an editor and live preview side by side with a draggable, keyboard-adjustable divider whose ratio is retained per tab for the session.
 - Tablet may offer Split when space permits and otherwise uses the mode switcher.
-- Phone switches between Editor and Reader. It must not squeeze both panes side by side.
+- Phone switches between Write and Preview. It must not squeeze both panes side by side.
 - Reuse the existing sanitized Markdown rendering pipeline for live preview, including GFM, relative links and images, math, Mermaid, Obsidian compatibility, and syntax highlighting.
 - Lazy-load the editor only when a user first enters Editor or Split so the reading path remains lightweight.
 
@@ -158,8 +158,8 @@ Work one priority at a time:
 1. **Brand foundation and favicon:** finalize tokens, monogram, favicon set, manifest metadata, and shared icon conventions.
 2. **Shell refinement:** simplify the header, start page, sidebar, document tabs, menus, and transient status treatment under the new tokens.
 3. **Theme refinement:** update all six presets, group settings, add previews/descriptions, and verify contrast across reader features.
-4. **Editor foundation:** add the session draft model, CodeMirror, Reader/Editor switching, dirty state, and lazy loading.
-5. **Split view:** add responsive live preview, state/scroll preservation, and desktop/tablet/phone behavior.
+4. **Editor foundation — Complete:** add the session draft model, CodeMirror, Preview/Write switching, dirty state, and lazy loading.
+5. **Split view — Complete:** add responsive live preview, a session-retained accessible pane ratio, independent editor/reader/preview scroll preservation, and desktop/tablet/phone behavior.
 6. **Safe save flow:** add Download, capability-aware Save/Save As, dirty-close safeguards, and in-memory filesystem tests.
 7. **Editor toolbar and polish:** add formatting actions, keyboard/a11y refinements, and cross-theme quality checks.
 
@@ -179,7 +179,7 @@ Keep milestone branches after their pull requests are merged so the workstream h
 
 ### Browser and Responsive
 
-- Playwright covers Reader, Editor, and Split modes at desktop, tablet, and phone widths.
+- Playwright covers Preview, Write, and Split modes at desktop, tablet, and phone widths.
 - Use `setInputFiles` for local-file and directory-input fallback coverage; never automate the native folder or save dialog.
 - Verify relative links and assets, unsaved-close behavior, downloads, keyboard navigation, and the complete theme matrix in Chromium.
 - Run `@axe-core/playwright` checks for the shell, settings, editor, and split view.

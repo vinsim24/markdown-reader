@@ -3,6 +3,7 @@ import {
   createDocumentTab,
   documentTabsReducer,
   initialDocumentTabsState,
+  isDocumentDirty,
 } from './documentTabs';
 
 function tab(title: string) {
@@ -66,5 +67,43 @@ describe('documentTabsReducer', () => {
     );
 
     expect(state).toEqual(initialDocumentTabsState);
+  });
+
+  it('tracks session drafts and does not overwrite a modified existing tab', () => {
+    const original = tab('Draft.md');
+    let state = documentTabsReducer(initialDocumentTabsState, {
+      type: 'open',
+      tab: original,
+    });
+    state = documentTabsReducer(state, {
+      type: 'update',
+      id: original.id,
+      changes: {
+        editorScrollTop: 240,
+        editorSelection: { anchor: 8, head: 8 },
+        markdown: '# Changed draft',
+        previewScrollTop: 180,
+        scrollTop: 180,
+        splitRatio: 60,
+        viewMode: 'split',
+      },
+    });
+
+    expect(isDocumentDirty(state.tabs[0])).toBe(true);
+    expect(state.tabs[0]).toMatchObject({
+      editorScrollTop: 240,
+      editorSelection: { anchor: 8, head: 8 },
+      originalMarkdown: '# Draft.md',
+      previewScrollTop: 180,
+      scrollTop: 180,
+      splitRatio: 60,
+      viewMode: 'split',
+    });
+
+    state = documentTabsReducer(state, {
+      type: 'open',
+      tab: { ...original, markdown: '# Replacement source' },
+    });
+    expect(state.tabs[0].markdown).toBe('# Changed draft');
   });
 });

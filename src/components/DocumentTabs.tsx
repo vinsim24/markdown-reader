@@ -2,7 +2,7 @@ import { FileTextIcon as FileText } from '@phosphor-icons/react/FileText';
 import { PlusIcon as Plus } from '@phosphor-icons/react/Plus';
 import { XIcon as X } from '@phosphor-icons/react/X';
 import { useRef } from 'react';
-import type { DocumentTab } from '../lib/documentTabs';
+import { type DocumentTab, isDocumentDirty } from '../lib/documentTabs';
 
 interface DocumentTabsProps {
   activeId: string;
@@ -37,6 +37,7 @@ export default function DocumentTabs({
         <div ref={tabList} className="document-tab-list">
           {tabs.map((tab, index) => {
             const active = tab.id === activeId;
+            const dirty = isDocumentDirty(tab);
             return (
               <div
                 className={`document-tab${active ? ' active' : ''}`}
@@ -73,6 +74,14 @@ export default function DocumentTabs({
                     aria-hidden="true"
                   />
                   <span className="document-tab-title">{tab.title}</span>
+                  {dirty && (
+                    <>
+                      <span className="document-tab-dirty" aria-hidden="true">
+                        •
+                      </span>
+                      <span className="visually-hidden">Unsaved changes</span>
+                    </>
+                  )}
                 </button>
                 <button
                   type="button"

@@ -6,14 +6,14 @@ Markdown Reader ships as a static browser application served by unprivileged Ngi
 
 ```bash
 docker build -t markdown-reader:local .
-docker run --detach --rm --name markdown-reader -p 8080:8080 markdown-reader:local
+docker run --detach --rm --name markdown-reader -p 8787:8080 markdown-reader:local
 ```
 
-Open <http://localhost:8080>. Confirm container health with:
+Open <http://localhost:8787>. The container listens internally on `8080`, but `8787` is the recommended host port because host port `8080` is commonly occupied. Map any other free host port when needed. Confirm container health with:
 
 ```bash
 docker inspect --format '{{.State.Health.Status}}' markdown-reader
-curl --fail http://localhost:8080/healthz
+curl --fail http://localhost:8787/healthz
 ```
 
 Stop the local container with:
@@ -30,7 +30,7 @@ The Docker Hub repository is `vinsim24/markdown-reader`.
 
 ```bash
 docker pull vinsim24/markdown-reader:latest
-docker run --detach --rm --name markdown-reader -p 8080:8080 vinsim24/markdown-reader:latest
+docker run --detach --rm --name markdown-reader -p 8787:8080 vinsim24/markdown-reader:latest
 ```
 
 Release images receive both an immutable Git commit tag and `latest`. To publish the current commit:
@@ -54,13 +54,13 @@ Publishing requires an authenticated Docker CLI with write access to `vinsim24/m
 Run the repository browser suite against an already running container with:
 
 ```bash
-PLAYWRIGHT_BASE_URL=http://127.0.0.1:8080 npm run test:e2e
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:8787 npm run test:e2e
 ```
 
 In PowerShell:
 
 ```powershell
-$env:PLAYWRIGHT_BASE_URL = 'http://127.0.0.1:8080'
+$env:PLAYWRIGHT_BASE_URL = 'http://127.0.0.1:8787'
 npm run test:e2e
 Remove-Item Env:PLAYWRIGHT_BASE_URL
 ```

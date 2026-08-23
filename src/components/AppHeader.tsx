@@ -25,6 +25,7 @@ interface AppHeaderProps {
   onOpenNav: () => void;
   onOpenSettings: (event: MouseEvent<HTMLButtonElement>) => void;
   onToggleSearch: () => void;
+  searchEnabled: boolean;
   searchOpen: boolean;
   settingsOpen: boolean;
 }
@@ -47,6 +48,7 @@ export default function AppHeader({
   onOpenNav,
   onOpenSettings,
   onToggleSearch,
+  searchEnabled,
   searchOpen,
   settingsOpen,
 }: AppHeaderProps) {
@@ -62,7 +64,7 @@ export default function AppHeader({
         <span>Markdown Reader</span>
       </button>
       <div className="topbar-actions">
-        {hasDocument && (
+        {hasDocument && searchEnabled && (
           <button
             ref={navTrigger}
             type="button"

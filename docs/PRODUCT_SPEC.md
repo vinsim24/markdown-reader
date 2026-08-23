@@ -126,10 +126,10 @@ The approved sequence is maintained in [`POST_MVP_IMPLEMENTATION_PLAN.md`](POST_
 6. Markmap mind-map view for the active document — complete
 7. Ink & Paper brand foundation and favicon
 8. Product-shell and theme refinement
-9. Session-local CodeMirror editor with Reader, Editor, and responsive Split modes
+9. Session-local CodeMirror editor with Preview, Write, responsive Split, and Mind map modes — complete
 10. Capability-aware save/download flow and editor formatting tools
 
-The ordered milestones, editor security boundaries, and verification criteria are defined in [`INK_AND_PAPER_REVAMP_SPEC.md`](INK_AND_PAPER_REVAMP_SPEC.md). This specification completes the editor product/security review; it does not mark editor implementation complete.
+The ordered milestones, editor security boundaries, and verification criteria are defined in [`INK_AND_PAPER_REVAMP_SPEC.md`](INK_AND_PAPER_REVAMP_SPEC.md). The editor foundation and responsive Split workflow are complete; safe save/download and formatting tools remain later milestones.
 
 Longer-term items include Tauri desktop packaging, persistent folder permissions, cloud synchronization, bookmarks/history, broader document export, large-library indexing, and custom theme preset management.
 

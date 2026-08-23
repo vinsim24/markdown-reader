@@ -1,11 +1,18 @@
 import { BookOpenTextIcon as BookOpenText } from '@phosphor-icons/react/BookOpenText';
+import { ColumnsIcon as Columns } from '@phosphor-icons/react/Columns';
 import { CornersOutIcon as CornersOut } from '@phosphor-icons/react/CornersOut';
+import { PencilSimpleLineIcon as PencilSimpleLine } from '@phosphor-icons/react/PencilSimpleLine';
 import { TextAaIcon as TextAa } from '@phosphor-icons/react/TextAa';
 import { TreeStructureIcon as TreeStructure } from '@phosphor-icons/react/TreeStructure';
 import type { MouseEvent } from 'react';
-import type { DocumentTab } from '../lib/documentTabs';
+import {
+  type DocumentTab,
+  type DocumentViewMode,
+  type EditorSelection,
+} from '../lib/documentTabs';
 import type { DocumentHeading } from '../lib/headings';
 import type { Theme } from '../lib/preferences';
+import DocumentEditorWorkspace from './DocumentEditorWorkspace';
 import MarkdownDocument from './MarkdownDocument';
 import MarkmapView from './MarkmapView';
 import ReaderSidebar from './ReaderSidebar';
@@ -20,6 +27,14 @@ interface ReaderWorkspaceProps {
   linkNotice: string;
   navOpen: boolean;
   onDismissNotice: () => void;
+  onEditorChange: (
+    id: string,
+    markdown: string,
+    selection: EditorSelection
+  ) => void;
+  onEditorScroll: (id: string, scrollTop: number) => void;
+  onPreviewScroll: (id: string, scrollTop: number) => void;
+  onSplitRatioChange: (id: string, splitRatio: number) => void;
   onEnterFocus: () => void;
   onHeadingSelect: (id: string) => void;
   onOpenFile: () => void;
@@ -41,8 +56,7 @@ interface ReaderWorkspaceProps {
   search: string;
   searchOpen: boolean;
   theme: Theme;
-  viewMode: 'reader' | 'mindmap';
-  onSetViewMode: (viewMode: 'reader' | 'mindmap') => void;
+  onSetViewMode: (viewMode: DocumentViewMode) => void;
   words: number;
 }
 
@@ -60,6 +74,10 @@ export default function ReaderWorkspace({
   linkNotice,
   navOpen,
   onDismissNotice,
+  onEditorChange,
+  onEditorScroll,
+  onPreviewScroll,
+  onSplitRatioChange,
   onEnterFocus,
   onHeadingSelect,
   onOpenFile,
@@ -77,11 +95,11 @@ export default function ReaderWorkspace({
   search,
   searchOpen,
   theme,
-  viewMode,
   onSetViewMode,
   words,
 }: ReaderWorkspaceProps) {
   const hasDocument = activeDocument !== undefined;
+  const viewMode = activeDocument?.viewMode ?? 'reader';
   return (
     <div className={`workspace${hasDocument ? '' : ' empty-workspace'}`}>
       {activeDocument && (
@@ -118,36 +136,59 @@ export default function ReaderWorkspace({
                 <fieldset className="view-toggle" aria-label="Document view">
                   <button
                     type="button"
+                    aria-label="Preview"
                     aria-pressed={viewMode === 'reader'}
                     onClick={() => onSetViewMode('reader')}
                   >
                     <BookOpenText size={14} aria-hidden="true" />
-                    Reader
+                    <span>Preview</span>
                   </button>
                   <button
                     type="button"
+                    aria-label="Write"
+                    aria-pressed={viewMode === 'editor'}
+                    onClick={() => onSetViewMode('editor')}
+                  >
+                    <PencilSimpleLine size={14} aria-hidden="true" />
+                    <span>Write</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="split-action"
+                    aria-label="Split"
+                    aria-pressed={viewMode === 'split'}
+                    onClick={() => onSetViewMode('split')}
+                  >
+                    <Columns size={14} aria-hidden="true" />
+                    <span>Split</span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Mind map"
                     aria-pressed={viewMode === 'mindmap'}
                     onClick={() => onSetViewMode('mindmap')}
                   >
                     <TreeStructure size={14} aria-hidden="true" />
-                    Mind map
+                    <span>Mind map</span>
                   </button>
                 </fieldset>
+                {viewMode === 'reader' && (
+                  <button
+                    type="button"
+                    className="subtle-button focus-action"
+                    onClick={onEnterFocus}
+                  >
+                    <CornersOut size={14} aria-hidden="true" />
+                    <span>Focus mode</span>
+                  </button>
+                )}
                 <button
                   type="button"
-                  className="subtle-button"
-                  onClick={onEnterFocus}
-                >
-                  <CornersOut size={14} aria-hidden="true" />
-                  Focus mode
-                </button>
-                <button
-                  type="button"
-                  className="subtle-button"
+                  className="subtle-button reading-action"
                   onClick={onOpenSettings}
                 >
                   <TextAa size={15} aria-hidden="true" />
-                  Reading
+                  <span>Reading</span>
                 </button>
               </div>
             </div>
@@ -176,18 +217,31 @@ export default function ReaderWorkspace({
                 search={search}
                 theme={theme}
               />
-            ) : (
+            ) : viewMode === 'mindmap' ? (
               <MarkmapView
                 fileName={activeDocument.title}
                 markdown={activeDocument.markdown}
                 theme={theme}
               />
+            ) : (
+              <DocumentEditorWorkspace
+                activeDocument={activeDocument}
+                mode={viewMode}
+                onEditorChange={onEditorChange}
+                onEditorScroll={onEditorScroll}
+                onPreviewScroll={onPreviewScroll}
+                onRelativeLink={onRelativeLink}
+                onSplitRatioChange={onSplitRatioChange}
+                theme={theme}
+              />
             )}
-            <footer className="reader-footer">
-              <span>End of document</span>
-              <span>•</span>
-              <span>Markdown Reader</span>
-            </footer>
+            {(viewMode === 'reader' || viewMode === 'mindmap') && (
+              <footer className="reader-footer">
+                <span>End of document</span>
+                <span>•</span>
+                <span>Markdown Reader</span>
+              </footer>
+            )}
           </>
         ) : (
           <>
