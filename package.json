@@ -1,5 +1,6 @@
 {
   "name": "markdown-reader",
+  "description": "A private, responsive Markdown reader for comfortable local reading.",
   "private": true,
   "version": "0.1.0",
   "type": "module",

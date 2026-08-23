@@ -1,4 +1,10 @@
-*
-!dist/
-!dist/**
-!Dockerfile
+.git
+.github
+dist
+node_modules
+playwright-report
+test-results
+coverage
+docs
+tests
+*.log

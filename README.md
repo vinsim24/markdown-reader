@@ -1,15 +1,19 @@
 # Markdown Reader
 
-A private, responsive reader for comfortable long-form Markdown. Documents are processed entirely in the browser and are never uploaded.
+A private, responsive Markdown reader for comfortable local reading. The Ink & Paper interface combines calm typography, focused navigation, document tabs, and six accessible reading themes. Documents are processed entirely in the browser and are never uploaded.
 
 ## MVP features
 
 - Open individual `.md` and `.markdown` files, or drag a file into the page.
+- Keep multiple documents open in keyboard-accessible tabs.
 - Explicitly open a local folder and navigate a recursive Markdown file tree.
+- Import public Markdown URLs, including GitHub blob links converted to raw files.
 - Follow safe relative Markdown links and load relative images from the granted folder.
 - Render sanitized GitHub-flavored Markdown, including tables, task lists, blockquotes, syntax-highlighted code blocks with copy controls, KaTeX math, safe inline HTML, and themed Mermaid diagrams with viewing and export controls.
+- Switch any document to an interactive Markmap mind-map view with pan, zoom, folding, full-screen viewing, and PNG/SVG export.
+- Open bundled Markdown, Obsidian, and Markmap examples without uploading anything.
 - Search with match highlighting, current-section navigation, and Focus mode.
-- Persist validated reading preferences locally: themes, fonts, size, width, line height, custom colors, and code theme.
+- Persist validated reading preferences locally: six themes, eight font options, size, width, line height, custom colors, and code theme.
 - Responsive desktop, tablet, and mobile layouts with accessible keyboard/dialog behavior.
 
 ## Privacy and folder permissions
@@ -55,14 +59,23 @@ npm run verify
 
 ## Production and Docker
 
+Run the published image:
+
 ```bash
-npm ci
-npm run build
-docker build -t markdown-reader .
-docker run --rm -p 8080:80 markdown-reader
+docker pull vinsim24/markdown-reader:latest
+docker run --rm -p 8080:8080 vinsim24/markdown-reader:latest
+```
+
+Or build it from source:
+
+```bash
+docker build -t markdown-reader:local .
+docker run --rm -p 8080:8080 markdown-reader:local
 ```
 
 Open <http://localhost:8080>.
+
+The reproducible multi-stage image builds with Node 24 and serves through unprivileged Nginx with a health endpoint, SPA routing, immutable asset caching, and security headers. It contains no user files and requires no host filesystem mount. See [Docker deployment](docs/DOCKER_DEPLOYMENT.md) for health checks, container browser testing, and release tagging.
 
 ## Fonts and licenses
 
