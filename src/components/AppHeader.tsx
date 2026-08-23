@@ -1,4 +1,10 @@
+import { FileArrowUpIcon as FileArrowUp } from '@phosphor-icons/react/FileArrowUp';
+import { FolderOpenIcon as FolderOpen } from '@phosphor-icons/react/FolderOpen';
+import { ListIcon as List } from '@phosphor-icons/react/List';
+import { MagnifyingGlassIcon as MagnifyingGlass } from '@phosphor-icons/react/MagnifyingGlass';
+import { SlidersHorizontalIcon as SlidersHorizontal } from '@phosphor-icons/react/SlidersHorizontal';
 import type { MouseEvent, RefObject } from 'react';
+import BrandMark from './BrandMark';
 import SourceMenu from './SourceMenu';
 
 interface AppHeaderProps {
@@ -52,8 +58,8 @@ export default function AppHeader({
         onClick={onCloseAll}
         aria-label="Return to start"
       >
-        <span className="brand-mark">⌁</span>
-        <span>markdown reader</span>
+        <BrandMark />
+        <span>Markdown Reader</span>
       </button>
       <div className="topbar-actions">
         {hasDocument && (
@@ -66,30 +72,36 @@ export default function AppHeader({
             aria-expanded={navOpen}
             aria-controls="reader-sidebar"
           >
-            ☰
+            <List size={19} weight="bold" aria-hidden="true" />
           </button>
         )}
-        <button
-          type="button"
-          className="toolbar-button header-primary-action"
-          onClick={() => fileInput.current?.click()}
-        >
-          <span>＋</span> Import Markdown
-        </button>
-        <button
-          type="button"
-          className="toolbar-button header-folder-action"
-          onClick={onOpenFolder}
-          disabled={folderLoading}
-        >
-          <span>⌑</span> {folderLoading ? 'Scanning…' : 'Open folder'}
-        </button>
-        <SourceMenu
-          onOpenCheatSheet={onOpenCheatSheet}
-          onOpenMarkmapExamples={onOpenMarkmapExamples}
-          onOpenObsidianGuide={onOpenObsidianGuide}
-          onOpenUrlImport={onOpenUrlImport}
-        />
+        {hasDocument && (
+          <>
+            <button
+              type="button"
+              className="toolbar-button header-primary-action"
+              onClick={() => fileInput.current?.click()}
+            >
+              <FileArrowUp size={16} weight="bold" aria-hidden="true" />
+              Import Markdown
+            </button>
+            <button
+              type="button"
+              className="toolbar-button header-folder-action"
+              onClick={onOpenFolder}
+              disabled={folderLoading}
+            >
+              <FolderOpen size={16} aria-hidden="true" />
+              {folderLoading ? 'Scanning...' : 'Open folder'}
+            </button>
+            <SourceMenu
+              onOpenCheatSheet={onOpenCheatSheet}
+              onOpenMarkmapExamples={onOpenMarkmapExamples}
+              onOpenObsidianGuide={onOpenObsidianGuide}
+              onOpenUrlImport={onOpenUrlImport}
+            />
+          </>
+        )}
         {hasDocument && (
           <button
             type="button"
@@ -99,7 +111,7 @@ export default function AppHeader({
             aria-expanded={searchOpen}
             aria-controls="document-search"
           >
-            ⌕
+            <MagnifyingGlass size={18} aria-hidden="true" />
           </button>
         )}
         <button
@@ -110,7 +122,7 @@ export default function AppHeader({
           aria-expanded={settingsOpen}
           aria-controls="reading-settings"
         >
-          ☼
+          <SlidersHorizontal size={18} aria-hidden="true" />
         </button>
         <input
           ref={fileInput}

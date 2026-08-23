@@ -3,55 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f7f7f5" />
+    <meta name="theme-color" content="#F6F7F8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#161A1E" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <title>Markdown Reader</title>
   </head>
   <body data-theme="light" data-font="inter">
     <div id="root"></div>
-    <!-- The original static prototype is retained below in app.js/styles.css for reference. -->
-    <!--
-      <header class="topbar">
-        <div class="brand"><span class="brand-mark">⌁</span><span>draft reader</span></div>
-        <div class="topbar-actions">
-          <button class="icon-button mobile-only" id="mobileNavButton" aria-label="Open navigation">☰</button>
-          <button class="toolbar-button" id="openButton"><span>＋</span> Open file</button>
-          <button class="icon-button" id="searchButton" aria-label="Search">⌕</button>
-          <button class="icon-button" id="settingsButton" aria-label="Open settings">☼</button>
-          <input id="fileInput" type="file" accept=".md,.markdown,text/markdown,text/plain" hidden />
-        </div>
-      </header>
-
-      <div class="workspace">
-        <aside class="sidebar" id="sidebar">
-          <div class="sidebar-heading"><span>Navigation</span><button class="close-nav mobile-only" id="closeNav">×</button></div>
-          <div class="file-card"><div class="file-icon">MD</div><div><strong id="fileName">payment-system.md</strong><small id="fileMeta">Draft document · 8 min read</small></div></div>
-          <div class="toc-label">On this page</div>
-          <nav id="toc" class="toc"></nav>
-          <div class="sidebar-footer"><span class="status-dot"></span><span>Local only</span><span class="footer-separator">·</span><span id="wordCount">1,248 words</span></div>
-        </aside>
-
-        <main class="main-area">
-          <div class="reader-toolbar">
-            <div class="breadcrumbs"><span>Documents</span><span>/</span><strong id="breadcrumbName">payment-system.md</strong></div>
-            <div class="reader-actions"><button class="subtle-button" id="focusButton">Focus mode</button><button class="subtle-button" id="settingsButtonSmall">Aa&nbsp; Reading</button></div>
-          </div>
-          <div class="search-panel" id="searchPanel"><input id="searchInput" type="search" placeholder="Search this document…" /><span id="searchResult">⌘ K</span></div>
-          <article class="reader" id="reader"></article>
-          <footer class="reader-footer"><span>End of document</span><span>•</span><span>Draft Reader</span></footer>
-        </main>
-      </div>
-
-      <div class="overlay" id="overlay"></div>
-      <section class="settings-panel" id="settingsPanel" aria-label="Reading settings">
-        <div class="settings-header"><div><span class="eyebrow">Personalize</span><h2>Reading settings</h2></div><button class="close-button" id="closeSettings">×</button></div>
-        <div class="setting-group"><label for="fontSelect">Font</label><select id="fontSelect"><option value="inter">Inter</option><option value="source-serif">Source Serif 4</option><option value="literata">Literata</option><option value="atkinson">Atkinson Hyperlegible</option><option value="jetbrains">JetBrains Mono</option></select></div>
-        <div class="setting-group"><label>Theme</label><div class="theme-grid"><button data-set-theme="light" class="theme-choice active"><i class="swatch light-swatch"></i>Light</button><button data-set-theme="dark" class="theme-choice"><i class="swatch dark-swatch"></i>Dark</button><button data-set-theme="sepia" class="theme-choice"><i class="swatch sepia-swatch"></i>Sepia</button><button data-set-theme="mono" class="theme-choice"><i class="swatch mono-swatch"></i>Mono</button><button data-set-theme="cappuccino" class="theme-choice"><i class="swatch cappuccino-swatch"></i>Cappuccino</button><button data-set-theme="contrast" class="theme-choice"><i class="swatch contrast-swatch"></i>Contrast</button></div></div>
-        <div class="setting-group"><div class="range-label"><label for="sizeRange">Text size</label><span id="sizeValue">18px</span></div><input id="sizeRange" type="range" min="15" max="23" value="18" /></div>
-        <div class="setting-group"><div class="range-label"><label for="widthRange">Reading width</label><span id="widthValue">720px</span></div><input id="widthRange" type="range" min="600" max="900" value="720" step="20" /></div>
-        <button class="reset-button" id="resetButton">Reset preferences</button>
-      </section>
-    </div>
-    <script src="app.js"></script> -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -52,7 +52,7 @@ describe('critical reader interactions', () => {
   it('starts with private file-opening guidance instead of demo content', () => {
     render(<App />);
     expect(
-      screen.getByRole('heading', { name: 'Open a Markdown document' })
+      screen.getByRole('heading', { name: 'Markdown, made comfortable.' })
     ).not.toBeNull();
     expect(screen.queryByText('Payment System')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Focus mode' })).toBeNull();
@@ -118,7 +118,9 @@ describe('critical reader interactions', () => {
       screen.getByRole('region', { name: 'Mind map for Markmap Examples.md' })
     ).not.toBeNull();
     expect(
-      screen.getByRole('button', { name: 'Mind map' }).getAttribute('aria-pressed')
+      screen
+        .getByRole('button', { name: 'Mind map' })
+        .getAttribute('aria-pressed')
     ).toBe('true');
 
     await user.click(screen.getByRole('button', { name: 'Reader' }));
@@ -209,7 +211,7 @@ describe('critical reader interactions', () => {
     ).toBe(false);
     await user.click(screen.getByRole('button', { name: 'Return to start' }));
     expect(
-      screen.getByRole('heading', { name: 'Open a Markdown document' })
+      screen.getByRole('heading', { name: 'Markdown, made comfortable.' })
     ).not.toBeNull();
     expect(
       screen.queryByRole('heading', { name: 'Focus document' })
@@ -281,7 +283,7 @@ describe('critical reader interactions', () => {
     expect(screen.getByRole('heading', { name: 'First' })).not.toBeNull();
     await user.click(screen.getByRole('button', { name: 'Close first.md' }));
     expect(
-      screen.getByRole('heading', { name: 'Open a Markdown document' })
+      screen.getByRole('heading', { name: 'Markdown, made comfortable.' })
     ).not.toBeNull();
     expect(
       screen.queryByRole('navigation', { name: 'Open documents' })

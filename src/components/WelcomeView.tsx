@@ -1,4 +1,11 @@
+import { ArrowRightIcon as ArrowRight } from '@phosphor-icons/react/ArrowRight';
+import { BookOpenTextIcon as BookOpenText } from '@phosphor-icons/react/BookOpenText';
+import { FileArrowUpIcon as FileArrowUp } from '@phosphor-icons/react/FileArrowUp';
+import { FolderOpenIcon as FolderOpen } from '@phosphor-icons/react/FolderOpen';
+import { GlobeHemisphereWestIcon as GlobeHemisphereWest } from '@phosphor-icons/react/GlobeHemisphereWest';
+import { TreeStructureIcon as TreeStructure } from '@phosphor-icons/react/TreeStructure';
 import type { MouseEvent } from 'react';
+import BrandMark from './BrandMark';
 
 interface WelcomeViewProps {
   folderLoading: boolean;
@@ -22,14 +29,11 @@ export default function WelcomeView({
   return (
     <section className="welcome" aria-labelledby="welcome-title">
       <div className="welcome-intro">
-        <span className="welcome-mark" aria-hidden="true">
-          MD
-        </span>
-        <p className="eyebrow">Your private reading space</p>
-        <h1 id="welcome-title">Open a Markdown document</h1>
+        <BrandMark className="welcome-mark" />
+        <p className="eyebrow">Private by design</p>
+        <h1 id="welcome-title">Markdown, made comfortable.</h1>
         <p className="welcome-copy">
-          Choose a file or folder to begin. Your documents stay on this device
-          and are never uploaded.
+          Read local documents with thoughtful typography and no uploads.
         </p>
         <div className="welcome-actions">
           <button
@@ -37,6 +41,7 @@ export default function WelcomeView({
             className="welcome-primary"
             onClick={onOpenFile}
           >
+            <FileArrowUp size={18} weight="bold" aria-hidden="true" />
             Import Markdown
           </button>
           <button
@@ -45,7 +50,8 @@ export default function WelcomeView({
             onClick={onOpenFolder}
             disabled={folderLoading}
           >
-            {folderLoading ? 'Scanning…' : 'Open folder'}
+            <FolderOpen size={18} aria-hidden="true" />
+            {folderLoading ? 'Scanning...' : 'Open folder'}
           </button>
         </div>
         <button
@@ -53,21 +59,20 @@ export default function WelcomeView({
           className="welcome-link-action"
           onClick={onOpenUrlImport}
         >
+          <GlobeHemisphereWest size={16} aria-hidden="true" />
           Import from URL
         </button>
-        <p className="welcome-drop">
-          You can also drop a .md or .markdown file
-        </p>
+        <p className="welcome-drop">Or drop a .md or .markdown file anywhere</p>
       </div>
       <aside
         className="welcome-examples"
         aria-labelledby="welcome-examples-title"
       >
         <p className="welcome-examples-title" id="welcome-examples-title">
-          Explore with an example
+          Start with an example
         </p>
         <p className="welcome-examples-copy">
-          See supported syntax without choosing a local file.
+          Explore supported formats without choosing a local file.
         </p>
         <button
           type="button"
@@ -75,8 +80,12 @@ export default function WelcomeView({
           onClick={onOpenCheatSheet}
           aria-label="Open cheat sheet"
         >
-          <strong>Open cheat sheet</strong>
-          <span>Markdown, math, code, and Mermaid diagrams</span>
+          <BookOpenText size={20} aria-hidden="true" />
+          <span className="welcome-example-copy">
+            <strong>Open cheat sheet</strong>
+            <span>Markdown, math, code, and Mermaid diagrams</span>
+          </span>
+          <ArrowRight size={16} aria-hidden="true" />
         </button>
         <button
           type="button"
@@ -84,8 +93,12 @@ export default function WelcomeView({
           onClick={onOpenObsidianGuide}
           aria-label="Obsidian guide"
         >
-          <strong>Obsidian guide</strong>
-          <span>Callouts, wikilinks, embeds, and properties</span>
+          <BookOpenText size={20} aria-hidden="true" />
+          <span className="welcome-example-copy">
+            <strong>Obsidian guide</strong>
+            <span>Callouts, wikilinks, embeds, and properties</span>
+          </span>
+          <ArrowRight size={16} aria-hidden="true" />
         </button>
         <button
           type="button"
@@ -93,8 +106,12 @@ export default function WelcomeView({
           onClick={onOpenMarkmapExamples}
           aria-label="Markmap example"
         >
-          <strong>Markmap example</strong>
-          <span>Interactive mind maps generated from Markdown</span>
+          <TreeStructure size={20} aria-hidden="true" />
+          <span className="welcome-example-copy">
+            <strong>Markmap example</strong>
+            <span>Interactive mind maps generated from Markdown</span>
+          </span>
+          <ArrowRight size={16} aria-hidden="true" />
         </button>
       </aside>
     </section>

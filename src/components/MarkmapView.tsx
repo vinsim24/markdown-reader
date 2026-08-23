@@ -1,9 +1,16 @@
+import { CornersInIcon as CornersIn } from '@phosphor-icons/react/CornersIn';
+import { CornersOutIcon as CornersOut } from '@phosphor-icons/react/CornersOut';
+import { DownloadSimpleIcon as DownloadSimple } from '@phosphor-icons/react/DownloadSimple';
+import { FrameCornersIcon as FrameCorners } from '@phosphor-icons/react/FrameCorners';
+import { MagnifyingGlassMinusIcon as MagnifyingGlassMinus } from '@phosphor-icons/react/MagnifyingGlassMinus';
+import { MagnifyingGlassPlusIcon as MagnifyingGlassPlus } from '@phosphor-icons/react/MagnifyingGlassPlus';
 import { useEffect, useRef, useState } from 'react';
 import {
+  type SafeMarkmapNode,
   sanitizeMarkmapTree,
   serializeMarkmapSvg,
-  type SafeMarkmapNode,
 } from '../lib/markmap';
+import type { Theme } from '../lib/preferences';
 
 interface MarkmapInstance {
   destroy: () => void;
@@ -14,6 +21,7 @@ interface MarkmapInstance {
 interface MarkmapViewProps {
   fileName: string;
   markdown: string;
+  theme: Theme;
 }
 
 function download(blob: Blob, fileName: string) {
@@ -29,7 +37,11 @@ function exportBaseName(fileName: string) {
   return fileName.replace(/\.(?:md|markdown)$/i, '') || 'mind-map';
 }
 
-export default function MarkmapView({ fileName, markdown }: MarkmapViewProps) {
+export default function MarkmapView({
+  fileName,
+  markdown,
+  theme,
+}: MarkmapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const instanceRef = useRef<MarkmapInstance | null>(null);
@@ -54,18 +66,20 @@ export default function MarkmapView({ fileName, markdown }: MarkmapViewProps) {
           transformed.root as unknown as SafeMarkmapNode
         );
         stylesheetRef.current = globalCSS;
-        const instance = Markmap.create(
-          svgRef.current,
-          {
-            autoFit: false,
-            duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-              ? 0
-              : 300,
-            embedGlobalCSS: true,
-            pan: true,
-            zoom: true,
-          }
-        );
+        const instance = Markmap.create(svgRef.current, {
+          autoFit: false,
+          color: () =>
+            getComputedStyle(containerRef.current ?? document.documentElement)
+              .getPropertyValue('--accent')
+              .trim() || '#3f6396',
+          duration: window.matchMedia('(prefers-reduced-motion: reduce)')
+            .matches
+            ? 0
+            : 300,
+          embedGlobalCSS: true,
+          pan: true,
+          zoom: true,
+        });
         instanceRef.current = instance;
         await instance.setData(root as Parameters<typeof instance.setData>[0]);
         if (cancelled) return;
@@ -84,7 +98,7 @@ export default function MarkmapView({ fileName, markdown }: MarkmapViewProps) {
       instanceRef.current?.destroy();
       instanceRef.current = null;
     };
-  }, [markdown]);
+  }, [markdown, theme]);
 
   useEffect(() => {
     const onFullscreenChange = () =>
@@ -137,8 +151,9 @@ export default function MarkmapView({ fileName, markdown }: MarkmapViewProps) {
       const context = canvas.getContext('2d');
       if (!context) throw new Error('Canvas is unavailable');
       context.scale(scale, scale);
-      context.fillStyle = getComputedStyle(containerRef.current ?? svg)
-        .backgroundColor;
+      context.fillStyle = getComputedStyle(
+        containerRef.current ?? svg
+      ).backgroundColor;
       context.fillRect(0, 0, exportWidth, exportHeight);
       context.drawImage(image, 0, 0, exportWidth, exportHeight);
       const blob = await new Promise<Blob | null>((resolve) =>
@@ -146,7 +161,9 @@ export default function MarkmapView({ fileName, markdown }: MarkmapViewProps) {
       );
       if (blob) download(blob, `${exportBaseName(fileName)}.png`);
     } catch {
-      setError('The PNG export could not be created. SVG export is still available.');
+      setError(
+        'The PNG export could not be created. SVG export is still available.'
+      );
     } finally {
       URL.revokeObjectURL(imageUrl);
     }
@@ -170,27 +187,68 @@ export default function MarkmapView({ fileName, markdown }: MarkmapViewProps) {
       ref={containerRef}
       aria-label={`Mind map for ${fileName}`}
     >
-      <div className="markmap-toolbar" aria-label="Mind map controls">
-        <span className="markmap-help">Drag to pan · scroll to zoom · select a branch to fold</span>
+      <div
+        className="markmap-toolbar"
+        role="toolbar"
+        aria-label="Mind map controls"
+      >
+        <span className="markmap-help">
+          Drag to pan, scroll to zoom, and select a branch to fold.
+        </span>
         <div className="markmap-actions">
-          <button type="button" onClick={() => runViewAction(() => instanceRef.current?.fit())}>
+          <button
+            type="button"
+            onClick={() => runViewAction(() => instanceRef.current?.fit())}
+          >
+            <FrameCorners size={16} aria-hidden="true" />
             Fit
           </button>
-          <button type="button" aria-label="Zoom in" onClick={() => runViewAction(() => instanceRef.current?.rescale(1.2))}>
-            +
+          <button
+            type="button"
+            aria-label="Zoom in"
+            onClick={() =>
+              runViewAction(() => instanceRef.current?.rescale(1.2))
+            }
+          >
+            <MagnifyingGlassPlus size={16} aria-hidden="true" />
           </button>
-          <button type="button" aria-label="Zoom out" onClick={() => runViewAction(() => instanceRef.current?.rescale(0.8))}>
-            −
+          <button
+            type="button"
+            aria-label="Zoom out"
+            onClick={() =>
+              runViewAction(() => instanceRef.current?.rescale(0.8))
+            }
+          >
+            <MagnifyingGlassMinus size={16} aria-hidden="true" />
           </button>
           <button type="button" onClick={() => void toggleFullscreen()}>
+            {fullscreen ? (
+              <CornersIn size={16} aria-hidden="true" />
+            ) : (
+              <CornersOut size={16} aria-hidden="true" />
+            )}
             {fullscreen ? 'Exit full screen' : 'Full screen'}
           </button>
-          <button type="button" onClick={exportSvg}>SVG</button>
-          <button type="button" onClick={() => void exportPng()}>PNG</button>
+          <button type="button" onClick={exportSvg}>
+            <DownloadSimple size={16} aria-hidden="true" />
+            SVG
+          </button>
+          <button type="button" onClick={() => void exportPng()}>
+            <DownloadSimple size={16} aria-hidden="true" />
+            PNG
+          </button>
         </div>
       </div>
-      {loading && <p className="markmap-status" role="status">Building mind map…</p>}
-      {error && <p className="markmap-status error" role="alert">{error}</p>}
+      {loading && (
+        <p className="markmap-status" role="status">
+          Building mind map…
+        </p>
+      )}
+      {error && (
+        <p className="markmap-status error" role="alert">
+          {error}
+        </p>
+      )}
       <svg ref={svgRef} aria-label="Interactive Markdown mind map" role="img" />
     </section>
   );

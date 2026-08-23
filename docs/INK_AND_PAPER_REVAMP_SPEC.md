@@ -165,6 +165,8 @@ Work one priority at a time:
 
 Brand tokens precede editor implementation so the editor is not styled twice. Session and save boundaries precede toolbar expansion so the editing model is safe before it becomes feature-rich.
 
+Deliver the visual Ink & Paper work, Docker verification, and editor milestones on focused branches. Merge each workstream through a reviewed pull request after its relevant verification passes. Complete and merge the visual revamp first, verify and document Docker deployment second, and begin editor implementation only after both are merged. Do not implement these priorities directly on `main`.
+
 ## Verification
 
 ### Unit and Component
@@ -192,4 +194,3 @@ Brand tokens precede editor implementation so the editor is not styled twice. Se
 - PDF, Word, or publishing export
 - A plugin marketplace
 - Advanced multi-cursor or IDE features
-

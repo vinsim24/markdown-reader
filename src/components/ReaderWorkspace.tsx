@@ -1,3 +1,7 @@
+import { BookOpenTextIcon as BookOpenText } from '@phosphor-icons/react/BookOpenText';
+import { CornersOutIcon as CornersOut } from '@phosphor-icons/react/CornersOut';
+import { TextAaIcon as TextAa } from '@phosphor-icons/react/TextAa';
+import { TreeStructureIcon as TreeStructure } from '@phosphor-icons/react/TreeStructure';
 import type { MouseEvent } from 'react';
 import type { DocumentTab } from '../lib/documentTabs';
 import type { DocumentHeading } from '../lib/headings';
@@ -111,12 +115,13 @@ export default function ReaderWorkspace({
                 <strong>{activeDocument.title}</strong>
               </div>
               <div className="reader-actions">
-                <div className="view-toggle" aria-label="Document view">
+                <fieldset className="view-toggle" aria-label="Document view">
                   <button
                     type="button"
                     aria-pressed={viewMode === 'reader'}
                     onClick={() => onSetViewMode('reader')}
                   >
+                    <BookOpenText size={14} aria-hidden="true" />
                     Reader
                   </button>
                   <button
@@ -124,14 +129,16 @@ export default function ReaderWorkspace({
                     aria-pressed={viewMode === 'mindmap'}
                     onClick={() => onSetViewMode('mindmap')}
                   >
+                    <TreeStructure size={14} aria-hidden="true" />
                     Mind map
                   </button>
-                </div>
+                </fieldset>
                 <button
                   type="button"
                   className="subtle-button"
                   onClick={onEnterFocus}
                 >
+                  <CornersOut size={14} aria-hidden="true" />
                   Focus mode
                 </button>
                 <button
@@ -139,7 +146,8 @@ export default function ReaderWorkspace({
                   className="subtle-button"
                   onClick={onOpenSettings}
                 >
-                  Aa&nbsp; Reading
+                  <TextAa size={15} aria-hidden="true" />
+                  Reading
                 </button>
               </div>
             </div>
@@ -154,7 +162,7 @@ export default function ReaderWorkspace({
                 <span>
                   {search
                     ? `${searchMatchCount(activeDocument.markdown, search)} matches`
-                    : '⌘ K'}
+                    : 'Ctrl K'}
                 </span>
               </div>
             )}
@@ -172,6 +180,7 @@ export default function ReaderWorkspace({
               <MarkmapView
                 fileName={activeDocument.title}
                 markdown={activeDocument.markdown}
+                theme={theme}
               />
             )}
             <footer className="reader-footer">

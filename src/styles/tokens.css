@@ -1,0 +1,102 @@
+:root {
+  --bg: #f6f7f8;
+  --surface: #fcfcfd;
+  --surface-2: #eef1f3;
+  --text: #20262c;
+  --muted: #5f6973;
+  --border: #dde2e6;
+  --accent: #3f6396;
+  --accent-strong: #31517e;
+  --accent-button: #3f6396;
+  --accent-soft: #e5ecf5;
+  --danger: #a63f4b;
+  --success: #35725a;
+  --shadow: 0 18px 48px rgb(32 38 44 / 0.12);
+  --control-radius: 8px;
+  --panel-radius: 12px;
+  --header-height: 64px;
+  --tabs-height: 46px;
+  --sidebar-width: 244px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body[data-theme="dark"] {
+  --bg: #161a1e;
+  --surface: #1d2227;
+  --surface-2: #252b31;
+  --text: #e8ecef;
+  --muted: #a5adb5;
+  --border: #333b43;
+  --accent: #87aadb;
+  --accent-strong: #a9c3e5;
+  --accent-button: #456894;
+  --accent-soft: #26374d;
+  --danger: #f196a0;
+  --success: #7fc4a7;
+  --shadow: 0 20px 54px rgb(0 0 0 / 0.32);
+}
+
+body[data-theme="sepia"] {
+  --bg: #f3ecdf;
+  --surface: #fbf7ee;
+  --surface-2: #eae0cf;
+  --text: #433a32;
+  --muted: #74675b;
+  --border: #ddd0bd;
+  --accent: #71513d;
+  --accent-strong: #563a2b;
+  --accent-button: #71513d;
+  --accent-soft: #e9d9c7;
+}
+
+body[data-theme="cappuccino"] {
+  --bg: #e9dfd3;
+  --surface: #f5ede4;
+  --surface-2: #e2d2c2;
+  --text: #3f322b;
+  --muted: #6d5b51;
+  --border: #d5c2b2;
+  --accent: #6b4937;
+  --accent-strong: #523426;
+  --accent-button: #6b4937;
+  --accent-soft: #e4cdbd;
+}
+
+body[data-theme="mono"] {
+  --bg: #f4f5f5;
+  --surface: #fcfcfc;
+  --surface-2: #e9ebec;
+  --text: #202326;
+  --muted: #62676c;
+  --border: #d7dadd;
+  --accent: #30353a;
+  --accent-strong: #171a1d;
+  --accent-button: #30353a;
+  --accent-soft: #e1e4e6;
+}
+
+body[data-theme="contrast"] {
+  --bg: #fff;
+  --surface: #fff;
+  --surface-2: #e9e9e9;
+  --text: #000;
+  --muted: #292929;
+  --border: #595959;
+  --accent: #0046c7;
+  --accent-strong: #002f88;
+  --accent-button: #0046c7;
+  --accent-soft: #dbe8ff;
+  --shadow: 0 0 0 2px #000;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 58%, transparent);
+  outline-offset: 2px;
+}

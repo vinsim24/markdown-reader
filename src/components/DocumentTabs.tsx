@@ -1,3 +1,6 @@
+import { FileTextIcon as FileText } from '@phosphor-icons/react/FileText';
+import { PlusIcon as Plus } from '@phosphor-icons/react/Plus';
+import { XIcon as X } from '@phosphor-icons/react/X';
 import { useRef } from 'react';
 import type { DocumentTab } from '../lib/documentTabs';
 
@@ -64,9 +67,11 @@ export default function DocumentTabs({
                     }
                   }}
                 >
-                  <span className="document-tab-icon" aria-hidden="true">
-                    MD
-                  </span>
+                  <FileText
+                    className="document-tab-icon"
+                    size={16}
+                    aria-hidden="true"
+                  />
                   <span className="document-tab-title">{tab.title}</span>
                 </button>
                 <button
@@ -75,7 +80,7 @@ export default function DocumentTabs({
                   aria-label={`Close ${tab.title}`}
                   onClick={() => onClose(tab.id)}
                 >
-                  ×
+                  <X size={13} aria-hidden="true" />
                 </button>
               </div>
             );
@@ -89,7 +94,7 @@ export default function DocumentTabs({
         aria-label="Open another Markdown file"
         title="Open another Markdown file"
       >
-        +
+        <Plus size={17} aria-hidden="true" />
       </button>
     </div>
   );
