@@ -28,6 +28,45 @@ test('presents local Markdown import as an explicit source action', async ({
   ).toBeVisible();
 });
 
+for (const viewport of [
+  { name: 'desktop', width: 1280, height: 800 },
+  { name: 'tablet', width: 768, height: 900 },
+  { name: 'mobile', width: 375, height: 740 },
+]) {
+  test(`${viewport.name} start page keeps source actions tidy`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await expect(
+      page.getByRole('button', { name: 'Import Markdown' }).first()
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Open folder' }).first()
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Open cheat sheet' })
+    ).toBeVisible();
+    await expect(page.locator('.topbar')).toHaveCSS('height', '68px');
+    await expect(page.locator('body')).toHaveJSProperty(
+      'scrollWidth',
+      viewport.width
+    );
+
+    await page.getByRole('button', { name: 'More' }).click();
+    await expect(page.getByRole('menu')).toBeVisible();
+    const accessibility = await new AxeBuilder({ page })
+      .include('.topbar')
+      .analyze();
+    expect(
+      accessibility.violations.filter((violation) =>
+        ['serious', 'critical'].includes(violation.impact || '')
+      )
+    ).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('menu')).toBeHidden();
+  });
+}
+
 test('imports a public Markdown URL directly in the browser', async ({
   page,
 }) => {
@@ -82,9 +121,8 @@ test('opens the bundled Markdown cheat sheet in a reusable tab', async ({
   await expect(page.locator('.reader .code-block')).toHaveCount(2);
   await expect(page.locator('.reader .mermaid-diagram svg')).toBeVisible();
 
-  await page
-    .locator('.topbar .toolbar-button', { hasText: 'Cheat sheet' })
-    .click();
+  await page.getByRole('button', { name: 'More' }).click();
+  await page.getByRole('menuitem', { name: /Cheat sheet/ }).click();
   await expect(
     page
       .getByRole('navigation', { name: 'Open documents' })
