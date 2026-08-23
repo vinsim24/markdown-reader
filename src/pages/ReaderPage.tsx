@@ -21,6 +21,7 @@ export default function ReaderPage() {
     setDragActive: ui.setDragActive,
     setFolderLoading: ui.setFolderLoading,
     setLinkNotice: ui.setLinkNotice,
+    showTransientNotice: ui.showTransientNotice,
   });
   const { activeHeading, setActiveHeading } = useActiveHeading(
     sessions.markdown,
@@ -129,7 +130,7 @@ export default function ReaderPage() {
         headings={headings}
         linkNotice={ui.linkNotice}
         navOpen={ui.nav}
-        onDismissNotice={() => ui.setLinkNotice('')}
+        onDismissNotice={ui.dismissLinkNotice}
         onEnterFocus={() => {
           ui.setFocusMode(true);
           ui.setNav(false);
