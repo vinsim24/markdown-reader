@@ -114,12 +114,16 @@ test('opens the bundled Markdown cheat sheet in a reusable tab', async ({
   page,
 }) => {
   await page.getByRole('button', { name: 'Open cheat sheet' }).click();
+  await expect(page.getByText('Opened Markdown Cheat Sheet.md')).toBeVisible();
   await expect(
     page.getByRole('heading', { name: 'Markdown Cheat Sheet' })
   ).toBeVisible();
   await expect(page.locator('.reader table')).toBeVisible();
   await expect(page.locator('.reader .code-block')).toHaveCount(2);
   await expect(page.locator('.reader .mermaid-diagram svg')).toBeVisible();
+  await expect(page.getByText('Opened Markdown Cheat Sheet.md')).toBeHidden({
+    timeout: 6000,
+  });
 
   await page.getByRole('button', { name: 'More' }).click();
   await page.getByRole('menuitem', { name: /Cheat sheet/ }).click();

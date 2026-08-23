@@ -25,6 +25,7 @@ interface DocumentSessionsOptions {
   setDragActive: Dispatch<SetStateAction<boolean>>;
   setFolderLoading: Dispatch<SetStateAction<boolean>>;
   setLinkNotice: Dispatch<SetStateAction<string>>;
+  showTransientNotice: (message: string) => void;
 }
 
 interface SessionDocument {
@@ -59,6 +60,7 @@ export function useDocumentSessions({
   setDragActive,
   setFolderLoading,
   setLinkNotice,
+  showTransientNotice,
 }: DocumentSessionsOptions) {
   const [documents, dispatchDocuments] = useReducer(
     documentTabsReducer,
@@ -129,7 +131,7 @@ export function useDocumentSessions({
           title: file.name,
         }),
       });
-      setLinkNotice(`Opened ${file.name}`);
+      showTransientNotice(`Opened ${file.name}`);
     };
     reader.readAsText(file);
   };
@@ -141,7 +143,7 @@ export function useDocumentSessions({
       type: 'open',
       tab: createDocumentTab(document),
     });
-    setLinkNotice(`Opened ${document.title}`);
+    showTransientNotice(`Opened ${document.title}`);
   };
 
   useEffect(() => {
@@ -218,7 +220,7 @@ export function useDocumentSessions({
         }),
       });
     }
-    setLinkNotice(`Opened ${path}`);
+    showTransientNotice(`Opened ${path}`);
     if (anchor) {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -254,7 +256,7 @@ export function useDocumentSessions({
         title: first.split('/').at(-1) || first,
       }),
     });
-    setLinkNotice(`Opened folder ${workspace.name}`);
+    showTransientNotice(`Opened folder ${workspace.name}`);
   };
 
   const openFolder = async () => {

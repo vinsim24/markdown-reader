@@ -16,6 +16,7 @@ export function useReaderUi() {
   const [dragActive, setDragActive] = useState(false);
   const [urlImportOpen, setUrlImportOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'reader' | 'mindmap'>('reader');
+  const noticeTimer = useRef<number | undefined>(undefined);
   const settingsPanel = useRef<HTMLElement>(null);
   const settingsReturnFocus = useRef<HTMLButtonElement>(null);
   const navTrigger = useRef<HTMLButtonElement>(null);
@@ -30,10 +31,23 @@ export function useReaderUi() {
     setSettings(false);
     requestAnimationFrame(() => settingsReturnFocus.current?.focus());
   };
+  const dismissLinkNotice = () => {
+    window.clearTimeout(noticeTimer.current);
+    noticeTimer.current = undefined;
+    setLinkNotice('');
+  };
+  const showTransientNotice = (message: string) => {
+    window.clearTimeout(noticeTimer.current);
+    setLinkNotice(message);
+    noticeTimer.current = window.setTimeout(() => {
+      setLinkNotice((current) => (current === message ? '' : current));
+      noticeTimer.current = undefined;
+    }, 4000);
+  };
   const resetDocumentUi = () => {
     setSearch('');
     setSearchOpen(false);
-    setLinkNotice('');
+    dismissLinkNotice();
     setNav(false);
     setSettings(false);
     setUrlImportOpen(false);
@@ -90,9 +104,15 @@ export function useReaderUi() {
     return () => panel.removeEventListener('keydown', trapFocus);
   }, [settings]);
 
+  useEffect(
+    () => () => window.clearTimeout(noticeTimer.current),
+    []
+  );
+
   return {
     closeSettings,
     closeUrlImport,
+    dismissLinkNotice,
     dragActive,
     focusMode,
     folderLoading,
@@ -113,6 +133,7 @@ export function useReaderUi() {
     setSearchOpen,
     setSettings,
     setUrlImportOpen,
+    showTransientNotice,
     settings,
     settingsPanel,
     settingsReturnFocus,
