@@ -12,6 +12,86 @@ test.beforeEach(async ({ page }) => {
   await page.reload();
 });
 
+test('presents local Markdown import as an explicit source action', async ({
+  page,
+}) => {
+  await expect(
+    page.getByRole('button', { name: 'Import Markdown' }).first()
+  ).toBeVisible();
+  await page.locator('input[type="file"]:not([multiple])').setInputFiles({
+    name: 'imported.markdown',
+    mimeType: 'text/markdown',
+    buffer: Buffer.from('# Explicit local import'),
+  });
+  await expect(
+    page.getByRole('heading', { name: 'Explicit local import' })
+  ).toBeVisible();
+});
+
+test('imports a public Markdown URL directly in the browser', async ({
+  page,
+}) => {
+  await page.route('https://example.com/guide.md', async (route) => {
+    await route.fulfill({
+      body: '# Remote browser document\n\n[External](https://example.org)',
+      contentType: 'text/markdown',
+    });
+  });
+  await page.getByRole('button', { name: 'Import from URL' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Import from URL' });
+  await dialog
+    .getByRole('textbox', { name: 'Markdown or GitHub URL' })
+    .fill('https://example.com/guide.md');
+  await dialog.getByRole('button', { name: 'Import Markdown' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Remote browser document' })
+  ).toBeVisible();
+  await expect(page.getByRole('link', { name: 'External' })).toHaveAttribute(
+    'rel',
+    'noopener noreferrer'
+  );
+});
+
+test('offers a working design.md example when no URL is handy', async ({
+  page,
+}) => {
+  await page.route(
+    'https://raw.githubusercontent.com/google-labs-code/design.md/main/README.md',
+    async (route) => {
+      await route.fulfill({
+        body: '# design.md example README',
+        contentType: 'text/plain',
+      });
+    }
+  );
+  await page.getByRole('button', { name: 'Import from URL' }).click();
+  await page.getByRole('button', { name: 'Import design.md README' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'design.md example README' })
+  ).toBeVisible();
+});
+
+test('opens the bundled Markdown cheat sheet in a reusable tab', async ({
+  page,
+}) => {
+  await page.getByRole('button', { name: 'Open cheat sheet' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Markdown Cheat Sheet' })
+  ).toBeVisible();
+  await expect(page.locator('.reader table')).toBeVisible();
+  await expect(page.locator('.reader .code-block')).toHaveCount(2);
+  await expect(page.locator('.reader .mermaid-diagram svg')).toBeVisible();
+
+  await page
+    .locator('.topbar .toolbar-button', { hasText: 'Cheat sheet' })
+    .click();
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Open documents' })
+      .locator('.document-tab-select')
+  ).toHaveCount(1);
+});
+
 test('opens a single file, searches it, and uses Focus mode', async ({
   page,
 }) => {

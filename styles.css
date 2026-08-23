@@ -998,6 +998,81 @@ body[data-theme="dark"] .app-shell.code-auto {
   display: block;
   margin-bottom: 9px;
 }
+.import-url-dialog {
+  position: fixed;
+  z-index: 31;
+  top: 50%;
+  left: 50%;
+  width: min(520px, calc(100vw - 32px));
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.import-url-description {
+  margin: -8px 0 22px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.import-url-dialog form {
+  display: grid;
+  gap: 10px;
+}
+.import-url-dialog form label {
+  font-size: 11px;
+  font-weight: 700;
+}
+.import-url-dialog form input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 11px 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+}
+.import-url-dialog form small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.import-url-example {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.import-url-example button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: var(--surface);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+}
+.import-url-example button:hover {
+  border-color: var(--accent);
+}
+.import-url-dialog form .welcome-primary {
+  justify-self: end;
+  margin-top: 8px;
+}
+.import-url-error {
+  margin: 4px 0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, #c94141 12%, var(--surface));
+  color: color-mix(in srgb, #c94141 75%, var(--text));
+  font-size: 12px;
+  line-height: 1.45;
+}
 .setting-label {
   display: block;
   margin-bottom: 9px;
@@ -1226,7 +1301,8 @@ body[data-font="inter"] .reader {
   font-family: Inter, system-ui, sans-serif;
 }
 body[data-font="system-mono"] .reader {
-  font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-family:
+    ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
 }
 @media (max-width: 1100px) {
   .workspace {

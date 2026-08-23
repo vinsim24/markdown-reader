@@ -36,6 +36,87 @@ describe('critical reader interactions', () => {
     ).not.toBeNull();
     expect(screen.queryByText('Payment System')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Focus mode' })).toBeNull();
+    expect(
+      screen.getAllByRole('button', { name: 'Import Markdown' }).length
+    ).toBeGreaterThan(0);
+  });
+
+  it('opens the bundled cheat sheet only after an explicit action', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    expect(
+      screen.queryByRole('heading', { name: 'Markdown Cheat Sheet' })
+    ).toBe(null);
+
+    await user.click(screen.getByRole('button', { name: 'Open cheat sheet' }));
+    expect(
+      await screen.findByText('Markdown Cheat Sheet', { selector: 'h1' })
+    ).not.toBeNull();
+    expect(
+      screen.getByText('Mermaid diagram', { selector: 'h2' })
+    ).not.toBeNull();
+
+    const cheatSheetButton = Array.from(
+      container.querySelectorAll<HTMLButtonElement>('button')
+    ).find((button) => button.textContent?.includes('Cheat sheet'));
+    if (!cheatSheetButton)
+      throw new Error('Cheat sheet action was not rendered.');
+    await user.click(cheatSheetButton);
+    expect(container.querySelectorAll('.document-tab-select')).toHaveLength(1);
+  });
+
+  it('imports public Markdown through the URL dialog', async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response('# Remote document\n\nFetched directly.', {
+          headers: { 'content-type': 'text/markdown' },
+        })
+      )
+    );
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Import from URL' }));
+    const dialog = screen.getByRole('dialog', { name: 'Import from URL' });
+    await user.type(
+      screen.getByRole('textbox', { name: 'Markdown or GitHub URL' }),
+      'https://example.com/guide.md'
+    );
+    await user.click(
+      dialog.getElementsByClassName('welcome-primary')[0] as HTMLButtonElement
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'Remote document' })
+    ).not.toBeNull();
+    expect(
+      screen.queryByRole('dialog', { name: 'Import from URL' })
+    ).toBeNull();
+  });
+
+  it('offers the design.md README when no URL is handy', async () => {
+    const user = userEvent.setup();
+    const fetchRemote = vi.fn().mockResolvedValue(
+      new Response('# design.md example', {
+        headers: { 'content-type': 'text/plain' },
+      })
+    );
+    vi.stubGlobal('fetch', fetchRemote);
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Import from URL' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Import design.md README' })
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'design.md example' })
+    ).not.toBeNull();
+    expect(fetchRemote).toHaveBeenCalledWith(
+      new URL(
+        'https://raw.githubusercontent.com/google-labs-code/design.md/main/README.md'
+      ),
+      expect.objectContaining({ credentials: 'omit' })
+    );
   });
 
   it('enters focus mode and exits with Escape', async () => {

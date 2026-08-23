@@ -117,9 +117,9 @@
 The approved sequence is maintained in [`POST_MVP_IMPLEMENTATION_PLAN.md`](POST_MVP_IMPLEMENTATION_PLAN.md). Work proceeds one priority at a time:
 
 1. Tabs and session-only document management
-2. Bundled Open Cheat Sheet action
-3. Import Markdown source-action experience
-4. Direct browser URL import and public GitHub README support
+2. Bundled Open Cheat Sheet action — complete
+3. Import Markdown source-action experience — complete
+4. Direct browser URL import and public GitHub README support — complete
 5. Read-only Obsidian Markdown subset and bundled cheat sheet
 6. Markmap mind-map view for the active document
 7. Editor functionality only after a separate product and security review

@@ -10,21 +10,22 @@ This document records the approved post-MVP feature order. Product requirements 
 - Closing the active tab selects an adjacent tab; closing the final tab returns to the private welcome screen.
 - Tab state and document contents remain session-only and are never written to persistent browser storage.
 
-## Priority 2 — Open Cheat Sheet
+## Priority 2 — Open Cheat Sheet — Complete
 
 - Bundle an offline Markdown cheat sheet with the application.
 - Open it as a read-only document tab through a prominent source action.
 - Keep the application empty by default; the cheat sheet opens only after an explicit user action.
 
-## Priority 3 — Import Markdown experience
+## Priority 3 — Import Markdown experience — Complete
 
 - Present the existing local file picker as an Import Markdown source action alongside Open Folder and Open Cheat Sheet.
 - Continue processing selected files only in the browser, without uploads or broader filesystem permissions.
 
-## Priority 4 — Import from URL and GitHub README
+## Priority 4 — Import from URL and GitHub README — Complete
 
 - Fetch a user-supplied public Markdown URL directly from the browser and open it in a tab.
 - Support raw Markdown URLs and common public GitHub repository/README URLs.
+- Offer the public `google-labs-code/design.md` README as an explicit example when the user has no URL handy.
 - Do not add a server-side proxy; explain CORS, network, content-type, size, and validation failures clearly.
 - Treat fetched Markdown as untrusted input and keep the existing sanitization and safe-link policies.
 
