@@ -68,4 +68,4 @@ Open <http://localhost:8080>.
 
 Inter, Source Serif 4, Literata, Atkinson Hyperlegible, and JetBrains Mono are bundled through Fontsource packages for offline use. Their upstream font licenses are the SIL Open Font License. Charter, System Sans, and System Mono use locally installed/system fallback stacks and add no network dependency.
 
-See [the product specification](docs/PRODUCT_SPEC.md) and [MVP implementation plan](docs/MVP_IMPLEMENTATION_PLAN.md) for product scope and status.
+See [the product specification](docs/PRODUCT_SPEC.md), [MVP implementation plan](docs/MVP_IMPLEMENTATION_PLAN.md), and [ordered post-MVP implementation plan](docs/POST_MVP_IMPLEMENTATION_PLAN.md) for product scope and status.

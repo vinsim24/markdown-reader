@@ -63,3 +63,5 @@ The Priority 5 changes were intentionally batched, then checked with the full au
 - `npm run verify`
 
 Chromium must pass before every push. Firefox and WebKit must be tested before an MVP release. Native operating-system folder dialogs are never automated.
+
+Post-MVP work is tracked separately in [`POST_MVP_IMPLEMENTATION_PLAN.md`](POST_MVP_IMPLEMENTATION_PLAN.md) and is implemented one approved priority at a time.

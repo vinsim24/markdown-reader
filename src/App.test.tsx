@@ -101,6 +101,50 @@ describe('critical reader interactions', () => {
     ).not.toBeNull();
   });
 
+  it('opens, switches, and closes session-only document tabs', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    const picker = container.querySelector<HTMLInputElement>(
+      'input[type="file"]:not([multiple])'
+    );
+    if (!picker) throw new Error('File picker was not rendered.');
+
+    fireEvent.change(picker, {
+      target: { files: [new File(['# First'], 'first.md')] },
+    });
+    await screen.findByRole('heading', { name: 'First' });
+    fireEvent.change(picker, {
+      target: { files: [new File(['# Second'], 'second.md')] },
+    });
+    await screen.findByRole('heading', { name: 'Second' });
+
+    const documentNavigation = screen.getByRole('navigation', {
+      name: 'Open documents',
+    });
+    expect(
+      documentNavigation.querySelectorAll('.document-tab-select')
+    ).toHaveLength(2);
+    expect(
+      screen
+        .getByRole('button', { name: 'second.md' })
+        .getAttribute('aria-current')
+    ).toBe('page');
+    await user.click(screen.getByRole('button', { name: 'first.md' }));
+    expect(screen.getByRole('heading', { name: 'First' })).not.toBeNull();
+
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByRole('heading', { name: 'Second' })).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Close second.md' }));
+    expect(screen.getByRole('heading', { name: 'First' })).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Close first.md' }));
+    expect(
+      screen.getByRole('heading', { name: 'Open a Markdown document' })
+    ).not.toBeNull();
+    expect(
+      screen.queryByRole('navigation', { name: 'Open documents' })
+    ).toBeNull();
+  });
+
   it('renders math and allowed inline HTML while removing unsafe HTML', async () => {
     const { container } = render(<App />);
     const picker = container.querySelector<HTMLInputElement>(

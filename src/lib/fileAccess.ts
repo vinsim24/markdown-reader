@@ -1,10 +1,13 @@
 import { normalizePath } from './paths';
 
 export interface FolderWorkspace {
+  id: string;
   name: string;
   files: Map<string, File>;
   markdownPaths: string[];
 }
+
+let workspaceSequence = 0;
 
 export interface DirectoryHandleLike {
   name: string;
@@ -24,12 +27,18 @@ function buildWorkspace(
   name: string,
   entries: Array<[string, File]>
 ): FolderWorkspace {
+  workspaceSequence += 1;
   const files = new Map(entries);
   const markdownPaths = entries
     .map(([path]) => path)
     .filter((path) => markdownPattern.test(path))
     .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
-  return { name, files, markdownPaths };
+  return {
+    id: `folder-workspace-${workspaceSequence}`,
+    name,
+    files,
+    markdownPaths,
+  };
 }
 
 export async function scanDirectory(

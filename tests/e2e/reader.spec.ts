@@ -45,6 +45,53 @@ test('opens a single file, searches it, and uses Focus mode', async ({
   await expect(page.getByRole('heading', { name: 'Single file' })).toBeHidden();
 });
 
+test('opens, switches, and closes document tabs', async ({ page }) => {
+  const picker = page.locator('input[type="file"]:not([multiple])');
+  await picker.setInputFiles({
+    name: 'first.md',
+    mimeType: 'text/markdown',
+    buffer: Buffer.from('# First tab'),
+  });
+  await picker.setInputFiles({
+    name: 'second.md',
+    mimeType: 'text/markdown',
+    buffer: Buffer.from('# Second tab'),
+  });
+
+  const documentNavigation = page.getByRole('navigation', {
+    name: 'Open documents',
+  });
+  await expect(documentNavigation.locator('.document-tab-select')).toHaveCount(
+    2
+  );
+  await expect(
+    documentNavigation.getByRole('button', { name: 'second.md', exact: true })
+  ).toHaveAttribute('aria-current', 'page');
+  await documentNavigation
+    .getByRole('button', { name: 'first.md', exact: true })
+    .click();
+  await expect(page.getByRole('heading', { name: 'First tab' })).toBeVisible();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('heading', { name: 'Second tab' })).toBeVisible();
+
+  const accessibility = await new AxeBuilder({ page }).analyze();
+  expect(
+    accessibility.violations.filter((violation) =>
+      ['serious', 'critical'].includes(violation.impact || '')
+    )
+  ).toEqual([]);
+
+  await page.getByRole('button', { name: 'Close second.md' }).click();
+  await expect(page.getByRole('heading', { name: 'First tab' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close first.md' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Open a Markdown document' })
+  ).toBeVisible();
+  await expect(
+    page.getByRole('navigation', { name: 'Open documents' })
+  ).toBeHidden();
+});
+
 test('opens the directory fallback and resolves local content', async ({
   page,
 }) => {
@@ -53,7 +100,10 @@ test('opens the directory fallback and resolves local content', async ({
   await expect(
     page.getByText('README.md', { exact: true }).first()
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Chapter One.md' }).click();
+  const fileTree = page.getByRole('complementary', {
+    name: 'Document navigation',
+  });
+  await fileTree.locator('.tree-file[title="guides/Chapter One.md"]').click();
   await expect(
     page.getByRole('heading', { name: 'Details', exact: true }).first()
   ).toBeVisible();
@@ -93,7 +143,7 @@ test('opens the directory fallback and resolves local content', async ({
     .getByRole('dialog', { name: 'Reading settings' })
     .getByRole('button', { name: 'Close reading settings' })
     .click();
-  await page.getByRole('button', { name: 'Markdown-Cheat-sheet.md' }).click();
+  await fileTree.locator('.tree-file[title="Markdown-Cheat-sheet.md"]').click();
   await expect(page.locator('.reader .katex')).toHaveCount(5);
   await expect(page.locator('.reader sup').first()).toContainText('2');
   await expect(page.locator('.reader sub').first()).toContainText('2');
@@ -144,7 +194,7 @@ test('opens the directory fallback and resolves local content', async ({
     diagramToolbar.getByRole('button', { name: 'SVG' }).click(),
   ]);
   expect(svgDownload.suggestedFilename()).toBe('mermaid-diagram.svg');
-  await page.getByRole('button', { name: 'README.md' }).click();
+  await fileTree.locator('.tree-file[title="README.md"]').click();
   await page.getByRole('button', { name: 'Chapter details' }).click();
   await expect(page).toHaveURL(/#details$/);
 });

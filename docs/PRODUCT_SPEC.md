@@ -114,14 +114,19 @@
 
 ## Post-MVP Roadmap
 
-- Tauri desktop packaging
-- Editing and saving Markdown
-- Persistent folder permissions (only after a separate security/design review)
-- Cloud storage or synchronization
-- Bookmarks, reading history, and tabs
-- PDF or HTML export
-- Large-library full-text indexing
-- Custom theme preset management beyond the current local colors
+The approved sequence is maintained in [`POST_MVP_IMPLEMENTATION_PLAN.md`](POST_MVP_IMPLEMENTATION_PLAN.md). Work proceeds one priority at a time:
+
+1. Tabs and session-only document management
+2. Bundled Open Cheat Sheet action
+3. Import Markdown source-action experience
+4. Direct browser URL import and public GitHub README support
+5. Read-only Obsidian Markdown subset and bundled cheat sheet
+6. Markmap mind-map view for the active document
+7. Editor functionality only after a separate product and security review
+
+Longer-term items include Tauri desktop packaging, persistent folder permissions, cloud synchronization, bookmarks/history, document export, large-library indexing, and custom theme preset management.
+
+Remote URL imports are an explicit user-directed download, not an upload. They must use direct browser fetching without a server proxy, remain subject to browser CORS controls, pass through the existing untrusted-Markdown sanitization pipeline, and never weaken local file-access boundaries.
 
 ## Development Rules
 

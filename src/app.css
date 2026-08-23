@@ -30,6 +30,7 @@
 .focus-mode .sidebar,
 .focus-mode .reader-toolbar,
 .focus-mode .topbar,
+.focus-mode .document-tabs,
 .focus-mode .search-panel {
   display: none;
 }

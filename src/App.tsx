@@ -3,12 +3,19 @@ import {
   type MouseEvent as ReactMouseEvent,
   useEffect,
   useMemo,
+  useReducer,
   useRef,
   useState,
 } from 'react';
+import DocumentTabs from './components/DocumentTabs';
 import MarkdownDocument from './components/MarkdownDocument';
 import ReaderSidebar from './components/ReaderSidebar';
 import ReadingSettings from './components/ReadingSettings';
+import {
+  createDocumentTab,
+  documentTabsReducer,
+  initialDocumentTabsState,
+} from './lib/documentTabs';
 import {
   type FolderWorkspace,
   pickDirectory,
@@ -35,8 +42,10 @@ function decodePathSafe(value: string) {
 }
 
 export default function App() {
-  const [markdown, setMarkdown] = useState('');
-  const [fileName, setFileName] = useState<string>();
+  const [documents, dispatchDocuments] = useReducer(
+    documentTabsReducer,
+    initialDocumentTabsState
+  );
   const [preferences, setPreferences] = useState(loadPreferences);
   const [settings, setSettings] = useState(false);
   const [nav, setNav] = useState(false);
@@ -44,8 +53,6 @@ export default function App() {
   const [search, setSearch] = useState('');
   const [focusMode, setFocusMode] = useState(false);
   const [linkNotice, setLinkNotice] = useState('');
-  const [folder, setFolder] = useState<FolderWorkspace>();
-  const [activePath, setActivePath] = useState('');
   const [folderLoading, setFolderLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [activeHeading, setActiveHeading] = useState('');
@@ -56,7 +63,14 @@ export default function App() {
   const settingsPanel = useRef<HTMLElement>(null);
   const settingsReturnFocus = useRef<HTMLButtonElement>(null);
   const navTrigger = useRef<HTMLButtonElement>(null);
-  const hasDocument = fileName !== undefined;
+  const activeDocument = documents.tabs.find(
+    (tab) => tab.id === documents.activeId
+  );
+  const markdown = activeDocument?.markdown || '';
+  const fileName = activeDocument?.title;
+  const folder = activeDocument?.folder;
+  const activePath = activeDocument?.activePath || '';
+  const hasDocument = activeDocument !== undefined;
   const headings = useMemo(() => extractHeadings(markdown), [markdown]);
   const words = markdown.trim() ? markdown.trim().split(/\s+/).length : 0;
   const readingMinutes = words ? Math.max(1, Math.ceil(words / 225)) : 0;
@@ -69,12 +83,44 @@ export default function App() {
     setSettings(false);
     requestAnimationFrame(() => settingsReturnFocus.current?.focus());
   };
+  const rememberActiveScroll = () => {
+    if (!activeDocument) return;
+    dispatchDocuments({
+      type: 'update',
+      id: activeDocument.id,
+      changes: { scrollTop: window.scrollY },
+    });
+  };
+  const resetDocumentUi = () => {
+    setSearch('');
+    setSearchOpen(false);
+    setLinkNotice('');
+    setActiveHeading('');
+    setNav(false);
+    setSettings(false);
+  };
+  const selectDocumentTab = (id: string) => {
+    if (id === documents.activeId) return;
+    rememberActiveScroll();
+    resetDocumentUi();
+    dispatchDocuments({ type: 'select', id });
+  };
+  const closeDocumentTab = (id: string) => {
+    if (id === documents.activeId) {
+      rememberActiveScroll();
+      resetDocumentUi();
+    }
+    dispatchDocuments({ type: 'close', id });
+  };
   useEffect(() => {
     document.body.dataset.theme = preferences.theme;
     document.body.dataset.font = preferences.font;
     if (skipPreferenceSave.current) skipPreferenceSave.current = false;
     else savePreferences(preferences);
   }, [preferences]);
+  useEffect(() => {
+    window.scrollTo({ top: activeDocument?.scrollTop || 0 });
+  }, [activeDocument?.id]);
   useEffect(() => {
     const elements = Array.from(
       document.querySelectorAll<HTMLElement>(
@@ -147,10 +193,17 @@ export default function App() {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      setMarkdown(String(reader.result));
-      setFileName(file.name);
-      setActivePath(file.name);
-      setFolder(undefined);
+      rememberActiveScroll();
+      resetDocumentUi();
+      dispatchDocuments({
+        type: 'open',
+        tab: createDocumentTab({
+          activePath: file.name,
+          markdown: String(reader.result),
+          sourceKey: `file:${file.name}:${file.size}:${file.lastModified}`,
+          title: file.name,
+        }),
+      });
       setLinkNotice(`Opened ${file.name}`);
     };
     reader.readAsText(file);
@@ -200,28 +253,53 @@ export default function App() {
     );
   };
   const closeDocument = () => {
-    setMarkdown('');
-    setFileName(undefined);
-    setFolder(undefined);
-    setActivePath('');
-    setSearch('');
-    setSearchOpen(false);
+    dispatchDocuments({ type: 'closeAll' });
+    resetDocumentUi();
     setFocusMode(false);
-    setNav(false);
-    setSettings(false);
-    setLinkNotice('');
-    setActiveHeading('');
     updateDocumentLocation();
     window.scrollTo({ top: 0 });
   };
-  const openFolderFile = async (path: string, anchor = '', query = '') => {
-    const file = folder?.files.get(path);
+  const openFolderFile = async (
+    path: string,
+    anchor = '',
+    query = '',
+    disposition: 'tab' | 'current' = 'tab'
+  ) => {
+    const workspace = folder;
+    if (!workspace) return;
+    const file = workspace.files.get(path);
     if (!file) return;
-    setMarkdown(await file.text());
-    setFileName(path.split('/').at(-1) || path);
-    setActivePath(path);
-    setSearch('');
-    setNav(false);
+    const sourceKey = `folder:${workspace.id}:${path}`;
+    const existing = documents.tabs.find((tab) => tab.sourceKey === sourceKey);
+    rememberActiveScroll();
+    resetDocumentUi();
+    if (existing) {
+      dispatchDocuments({ type: 'select', id: existing.id });
+    } else if (disposition === 'current' && activeDocument) {
+      dispatchDocuments({
+        type: 'update',
+        id: activeDocument.id,
+        changes: {
+          activePath: path,
+          folder: workspace,
+          markdown: await file.text(),
+          scrollTop: 0,
+          sourceKey,
+          title: path.split('/').at(-1) || path,
+        },
+      });
+    } else {
+      dispatchDocuments({
+        type: 'open',
+        tab: createDocumentTab({
+          activePath: path,
+          folder: workspace,
+          markdown: await file.text(),
+          sourceKey,
+          title: path.split('/').at(-1) || path,
+        }),
+      });
+    }
     setLinkNotice(`Opened ${path}`);
     if (anchor) {
       requestAnimationFrame(() => {
@@ -238,7 +316,6 @@ export default function App() {
   };
   const activateFolder = async (workspace: FolderWorkspace | null) => {
     if (!workspace) return;
-    setFolder(workspace);
     if (workspace.markdownPaths.length === 0) {
       setLinkNotice(`No Markdown files were found in ${workspace.name}.`);
       return;
@@ -246,10 +323,18 @@ export default function App() {
     const first = workspace.markdownPaths[0];
     const file = workspace.files.get(first);
     if (!file) return;
-    setMarkdown(await file.text());
-    setFileName(first.split('/').at(-1) || first);
-    setActivePath(first);
-    setSearch('');
+    rememberActiveScroll();
+    resetDocumentUi();
+    dispatchDocuments({
+      type: 'open',
+      tab: createDocumentTab({
+        activePath: first,
+        folder: workspace,
+        markdown: await file.text(),
+        sourceKey: `folder:${workspace.id}:${first}`,
+        title: first.split('/').at(-1) || first,
+      }),
+    });
     setLinkNotice(`Opened folder ${workspace.name}`);
   };
   const openFolder = async () => {
@@ -290,7 +375,7 @@ export default function App() {
       document.getElementById(decodedAnchor)?.scrollIntoView();
       return;
     }
-    await openFolderFile(target.path, target.anchor, target.query);
+    await openFolderFile(target.path, target.anchor, target.query, 'current');
   };
   const style = {
     '--reading-size': `${preferences.size}px`,
@@ -426,12 +511,21 @@ export default function App() {
           />
         </div>
       </header>
+      {hasDocument && (
+        <DocumentTabs
+          activeId={activeDocument.id}
+          onClose={closeDocumentTab}
+          onOpen={() => input.current?.click()}
+          onSelect={selectDocumentTab}
+          tabs={documents.tabs}
+        />
+      )}
       <div className={`workspace${hasDocument ? '' : ' empty-workspace'}`}>
         {hasDocument && (
           <ReaderSidebar
             activeHeading={activeHeading}
             activePath={activePath}
-            fileName={fileName}
+            fileName={activeDocument.title}
             folder={folder}
             headings={headings}
             navOpen={nav}
@@ -445,7 +539,11 @@ export default function App() {
             words={words}
           />
         )}
-        <main className="main-area">
+        <main
+          className="main-area"
+          id={hasDocument ? 'reader-document-panel' : undefined}
+          aria-labelledby={hasDocument ? `tab-${activeDocument.id}` : undefined}
+        >
           {hasDocument ? (
             <>
               <div className="reader-toolbar">
