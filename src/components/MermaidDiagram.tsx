@@ -1,3 +1,8 @@
+import { CheckIcon as Check } from '@phosphor-icons/react/Check';
+import { CopyIcon as Copy } from '@phosphor-icons/react/Copy';
+import { CornersInIcon as CornersIn } from '@phosphor-icons/react/CornersIn';
+import { CornersOutIcon as CornersOut } from '@phosphor-icons/react/CornersOut';
+import { DownloadSimpleIcon as DownloadSimple } from '@phosphor-icons/react/DownloadSimple';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { Theme } from '../lib/preferences';
 
@@ -5,49 +10,49 @@ let renderQueue = Promise.resolve();
 
 const themeVariables: Record<Theme, Record<string, string>> = {
   light: {
-    background: '#ffffff',
-    primaryColor: '#e3eee9',
-    primaryTextColor: '#292a2d',
-    primaryBorderColor: '#3d6b5c',
-    secondaryColor: '#eef3f1',
-    tertiaryColor: '#f7f7f5',
-    lineColor: '#62656a',
+    background: '#fcfcfd',
+    primaryColor: '#e5ecf5',
+    primaryTextColor: '#20262c',
+    primaryBorderColor: '#3f6396',
+    secondaryColor: '#eef1f3',
+    tertiaryColor: '#f6f7f8',
+    lineColor: '#5f6973',
   },
   dark: {
-    background: '#232627',
-    primaryColor: '#294036',
-    primaryTextColor: '#f2f7f4',
-    primaryBorderColor: '#90c2a5',
-    secondaryColor: '#2d3031',
-    tertiaryColor: '#191b1c',
-    lineColor: '#c4cbc6',
+    background: '#1d2227',
+    primaryColor: '#26374d',
+    primaryTextColor: '#e8ecef',
+    primaryBorderColor: '#87aadb',
+    secondaryColor: '#252b31',
+    tertiaryColor: '#161a1e',
+    lineColor: '#a5adb5',
   },
   sepia: {
-    background: '#faf5e9',
-    primaryColor: '#ead8c4',
-    primaryTextColor: '#493e32',
-    primaryBorderColor: '#74452d',
-    secondaryColor: '#f2eadb',
-    tertiaryColor: '#fffaf0',
-    lineColor: '#756555',
+    background: '#fbf7ee',
+    primaryColor: '#e9d9c7',
+    primaryTextColor: '#433a32',
+    primaryBorderColor: '#71513d',
+    secondaryColor: '#eae0cf',
+    tertiaryColor: '#f3ecdf',
+    lineColor: '#675a4e',
   },
   mono: {
-    background: '#ffffff',
-    primaryColor: '#ececea',
-    primaryTextColor: '#222222',
-    primaryBorderColor: '#222222',
-    secondaryColor: '#f5f5f3',
-    tertiaryColor: '#ffffff',
-    lineColor: '#444444',
+    background: '#fcfcfc',
+    primaryColor: '#e1e4e6',
+    primaryTextColor: '#202326',
+    primaryBorderColor: '#30353a',
+    secondaryColor: '#e9ebec',
+    tertiaryColor: '#f4f5f5',
+    lineColor: '#62676c',
   },
   cappuccino: {
-    background: '#f4ebdf',
-    primaryColor: '#e6cdbb',
-    primaryTextColor: '#44332a',
-    primaryBorderColor: '#70412d',
-    secondaryColor: '#e8ddcf',
-    tertiaryColor: '#fbf3e9',
-    lineColor: '#715c50',
+    background: '#f5ede4',
+    primaryColor: '#e4cdbd',
+    primaryTextColor: '#3f322b',
+    primaryBorderColor: '#6b4937',
+    secondaryColor: '#e2d2c2',
+    tertiaryColor: '#e9dfd3',
+    lineColor: '#6d5b51',
   },
   contrast: {
     background: '#ffffff',
@@ -243,9 +248,18 @@ export default function MermaidDiagram({ source, theme }: MermaidDiagramProps) {
           }
           title={fullscreen ? 'Exit full screen' : 'Full screen'}
         >
-          ⛶
+          {fullscreen ? (
+            <CornersIn size={16} aria-hidden="true" />
+          ) : (
+            <CornersOut size={16} aria-hidden="true" />
+          )}
         </button>
         <button type="button" onClick={copySource}>
+          {copyState === 'copied' ? (
+            <Check size={16} aria-hidden="true" />
+          ) : (
+            <Copy size={16} aria-hidden="true" />
+          )}
           {copyState === 'copied'
             ? 'Copied'
             : copyState === 'error'
@@ -257,6 +271,7 @@ export default function MermaidDiagram({ source, theme }: MermaidDiagramProps) {
           onClick={downloadPng}
           disabled={status !== 'ready'}
         >
+          <DownloadSimple size={16} aria-hidden="true" />
           PNG
         </button>
         <button
@@ -264,6 +279,7 @@ export default function MermaidDiagram({ source, theme }: MermaidDiagramProps) {
           onClick={downloadSvg}
           disabled={status !== 'ready'}
         >
+          <DownloadSimple size={16} aria-hidden="true" />
           SVG
         </button>
       </div>

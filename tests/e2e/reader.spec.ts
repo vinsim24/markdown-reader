@@ -46,14 +46,13 @@ for (const viewport of [
     await expect(
       page.getByRole('button', { name: 'Open cheat sheet' })
     ).toBeVisible();
-    await expect(page.locator('.topbar')).toHaveCSS('height', '68px');
+    await expect(page.locator('.topbar')).toHaveCSS('height', '64px');
     await expect(page.locator('body')).toHaveJSProperty(
       'scrollWidth',
       viewport.width
     );
 
-    await page.getByRole('button', { name: 'More' }).click();
-    await expect(page.getByRole('menu')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'More' })).toBeHidden();
     const accessibility = await new AxeBuilder({ page })
       .include('.topbar')
       .analyze();
@@ -62,8 +61,6 @@ for (const viewport of [
         ['serious', 'critical'].includes(violation.impact || '')
       )
     ).toEqual([]);
-    await page.keyboard.press('Escape');
-    await expect(page.getByRole('menu')).toBeHidden();
   });
 }
 
@@ -120,7 +117,9 @@ test('opens the bundled Markdown cheat sheet in a reusable tab', async ({
   ).toBeVisible();
   await expect(page.locator('.reader table')).toBeVisible();
   await expect(page.locator('.reader .code-block')).toHaveCount(2);
-  await expect(page.locator('.reader .mermaid-diagram svg')).toBeVisible();
+  await expect(
+    page.locator('.reader .mermaid-canvas > svg[role="img"]')
+  ).toBeVisible();
   await expect(page.getByText('Opened Markdown Cheat Sheet.md')).toBeHidden({
     timeout: 6000,
   });
@@ -138,7 +137,9 @@ test('switches the active document to an interactive Markmap view', async ({
   page,
 }) => {
   const pageErrors: string[] = [];
-  page.on('pageerror', (error) => pageErrors.push(error.stack ?? error.message));
+  page.on('pageerror', (error) =>
+    pageErrors.push(error.stack ?? error.message)
+  );
   await page.getByRole('button', { name: 'Markmap example' }).first().click();
 
   const mindMap = page.getByRole('region', {
@@ -148,7 +149,9 @@ test('switches the active document to an interactive Markmap view', async ({
   await expect(mindMap.locator('.markmap-node').first()).toBeVisible();
   expect(pageErrors, 'mind map initialization errors').toEqual([]);
   await expect(
-    mindMap.getByText('Drag to pan · scroll to zoom · select a branch to fold')
+    mindMap.getByText(
+      'Drag to pan, scroll to zoom, and select a branch to fold.'
+    )
   ).toBeVisible();
   await mindMap.getByRole('button', { name: 'Zoom in' }).click();
   await mindMap.getByRole('button', { name: 'Zoom out' }).click();
@@ -206,7 +209,7 @@ test('opens a single file, searches it, and uses Focus mode', async ({
   await expect(page.getByRole('button', { name: /Exit Focus/ })).toBeHidden();
   await page.getByRole('button', { name: 'Return to start' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Open a Markdown document' })
+    page.getByRole('heading', { name: 'Markdown, made comfortable.' })
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Single file' })).toBeHidden();
 });
@@ -230,6 +233,10 @@ test('opens, switches, and closes document tabs', async ({ page }) => {
   await expect(documentNavigation.locator('.document-tab-select')).toHaveCount(
     2
   );
+  await expect(documentNavigation.locator('.document-tab-list')).toHaveCSS(
+    'overflow-y',
+    'hidden'
+  );
   await expect(
     documentNavigation.getByRole('button', { name: 'second.md', exact: true })
   ).toHaveAttribute('aria-current', 'page');
@@ -251,7 +258,7 @@ test('opens, switches, and closes document tabs', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'First tab' })).toBeVisible();
   await page.getByRole('button', { name: 'Close first.md' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Open a Markdown document' })
+    page.getByRole('heading', { name: 'Markdown, made comfortable.' })
   ).toBeVisible();
   await expect(
     page.getByRole('navigation', { name: 'Open documents' })
@@ -285,17 +292,19 @@ test('opens the directory fallback and resolves local content', async ({
   await expect(
     page.getByRole('link', { name: 'External reference' })
   ).toHaveAttribute('rel', 'noopener noreferrer');
-  await expect(page.locator('.mermaid-diagram svg')).toBeVisible();
+  await expect(
+    page.locator('.mermaid-canvas > svg[role="img"]')
+  ).toBeVisible();
   await expect(page.locator('.mermaid-diagram')).not.toContainText(
     'flowchart LR'
   );
   await page.getByRole('button', { name: 'Open reading settings' }).click();
   for (const [theme, fill] of [
-    ['Light', 'rgb(227, 238, 233)'],
-    ['Dark', 'rgb(41, 64, 54)'],
-    ['Sepia', 'rgb(234, 216, 196)'],
-    ['Mono', 'rgb(236, 236, 234)'],
-    ['Cappuccino', 'rgb(230, 205, 187)'],
+    ['Light', 'rgb(229, 236, 245)'],
+    ['Dark', 'rgb(38, 55, 77)'],
+    ['Sepia', 'rgb(233, 217, 199)'],
+    ['Mono', 'rgb(225, 228, 230)'],
+    ['Cappuccino', 'rgb(228, 205, 189)'],
     ['High Contrast', 'rgb(255, 255, 255)'],
   ] as const) {
     await page.getByRole('button', { name: theme, exact: true }).click();

@@ -36,8 +36,8 @@ describe('MermaidDiagram', () => {
         startOnLoad: false,
         theme: 'base',
         themeVariables: expect.objectContaining({
-          primaryBorderColor: '#3d6b5c',
-          primaryTextColor: '#292a2d',
+          primaryBorderColor: '#3f6396',
+          primaryTextColor: '#20262c',
         }),
       })
     );
@@ -71,9 +71,9 @@ describe('MermaidDiagram', () => {
     expect(mermaid.initialize).toHaveBeenLastCalledWith(
       expect.objectContaining({
         themeVariables: expect.objectContaining({
-          background: '#232627',
-          primaryBorderColor: '#90c2a5',
-          primaryTextColor: '#f2f7f4',
+          background: '#1d2227',
+          primaryBorderColor: '#87aadb',
+          primaryTextColor: '#e8ecef',
         }),
       })
     );

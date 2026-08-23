@@ -15,6 +15,7 @@ Before making changes, read this file and `docs/PRODUCT_SPEC.md`. For brand, the
 ## Milestone Workflow
 
 - Work on the current `main` branch; do not create feature branches, pull requests, tags, or releases unless explicitly requested.
+- Deliver major workstreams on focused branches and merge them through reviewed pull requests after their required checks pass. Complete Ink & Paper first, verify Docker deployment next, and begin editor work only after both are merged. Do not code these priorities directly on `main`.
 - Do not rewrite Git history. Stop if unexpected user changes conflict with the task.
 - Follow the commit cadence explicitly requested for the task. For the current MVP completion, batch remaining coding, run the full verification suite once after coding is finished, then create the final commit and push.
 - Continue approved phases automatically; ask only when permissions, credentials, or a material product decision block progress.

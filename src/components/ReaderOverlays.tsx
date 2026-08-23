@@ -1,3 +1,4 @@
+import { ArrowsInSimpleIcon as ArrowsInSimple } from '@phosphor-icons/react/ArrowsInSimple';
 import type { Dispatch, RefObject, SetStateAction } from 'react';
 import type { CustomColors, ReaderPreferences } from '../lib/preferences';
 import ImportUrlDialog from './ImportUrlDialog';
@@ -54,6 +55,7 @@ export default function ReaderOverlays({
     <>
       {hasDocument && focusMode && (
         <button type="button" className="exit-focus" onClick={onExitFocus}>
+          <ArrowsInSimple size={15} aria-hidden="true" />
           Exit Focus <span>Esc</span>
         </button>
       )}

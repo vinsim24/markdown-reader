@@ -1,3 +1,7 @@
+import { BookOpenTextIcon as BookOpenText } from '@phosphor-icons/react/BookOpenText';
+import { CaretDownIcon as CaretDown } from '@phosphor-icons/react/CaretDown';
+import { GlobeHemisphereWestIcon as GlobeHemisphereWest } from '@phosphor-icons/react/GlobeHemisphereWest';
+import { TreeStructureIcon as TreeStructure } from '@phosphor-icons/react/TreeStructure';
 import { type MouseEvent, useEffect, useRef, useState } from 'react';
 
 interface SourceMenuProps {
@@ -55,7 +59,7 @@ export default function SourceMenu({
         aria-controls="source-menu"
         onClick={() => setOpen((current) => !current)}
       >
-        More
+        More <CaretDown size={13} aria-hidden="true" />
       </button>
       {open && (
         <div id="source-menu" className="source-menu-panel" role="menu">
@@ -71,8 +75,11 @@ export default function SourceMenu({
               setOpen(false);
             }}
           >
-            <strong>Import URL</strong>
-            <span>Open public Markdown or a GitHub README</span>
+            <GlobeHemisphereWest size={18} aria-hidden="true" />
+            <span>
+              <strong>Import URL</strong>
+              <span>Open public Markdown or a GitHub README</span>
+            </span>
           </button>
           <hr className="source-menu-divider" />
           <p className="source-menu-label" role="presentation">
@@ -83,24 +90,33 @@ export default function SourceMenu({
             role="menuitem"
             onClick={() => runAction(onOpenCheatSheet)}
           >
-            <strong>Cheat sheet</strong>
-            <span>Markdown, math, code, and diagrams</span>
+            <BookOpenText size={18} aria-hidden="true" />
+            <span>
+              <strong>Cheat sheet</strong>
+              <span>Markdown, math, code, and diagrams</span>
+            </span>
           </button>
           <button
             type="button"
             role="menuitem"
             onClick={() => runAction(onOpenObsidianGuide)}
           >
-            <strong>Obsidian guide</strong>
-            <span>Callouts, wikilinks, embeds, and properties</span>
+            <BookOpenText size={18} aria-hidden="true" />
+            <span>
+              <strong>Obsidian guide</strong>
+              <span>Callouts, wikilinks, embeds, and properties</span>
+            </span>
           </button>
           <button
             type="button"
             role="menuitem"
             onClick={() => runAction(onOpenMarkmapExamples)}
           >
-            <strong>Markmap example</strong>
-            <span>Explore Markdown as an interactive mind map</span>
+            <TreeStructure size={18} aria-hidden="true" />
+            <span>
+              <strong>Markmap example</strong>
+              <span>Explore Markdown as an interactive mind map</span>
+            </span>
           </button>
         </div>
       )}

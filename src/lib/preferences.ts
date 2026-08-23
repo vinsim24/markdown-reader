@@ -44,11 +44,11 @@ export const themeFonts: Record<Theme, Font> = {
   contrast: 'atkinson',
 };
 export const themeColors: Record<Theme, CustomColors> = {
-  light: { background: '#f7f7f5', text: '#292a2d', accent: '#3d6b5c' },
-  dark: { background: '#191b1c', text: '#e7e8e4', accent: '#90c2a5' },
-  sepia: { background: '#f2eadb', text: '#493e32', accent: '#74452d' },
-  mono: { background: '#f5f5f3', text: '#222222', accent: '#222222' },
-  cappuccino: { background: '#e8ddcf', text: '#44332a', accent: '#70412d' },
+  light: { background: '#f6f7f8', text: '#20262c', accent: '#3f6396' },
+  dark: { background: '#161a1e', text: '#e8ecef', accent: '#87aadb' },
+  sepia: { background: '#f3ecdf', text: '#433a32', accent: '#71513d' },
+  mono: { background: '#f4f5f5', text: '#202326', accent: '#30353a' },
+  cappuccino: { background: '#e9dfd3', text: '#3f322b', accent: '#6b4937' },
   contrast: { background: '#ffffff', text: '#000000', accent: '#003cff' },
 };
 export const defaultPreferences: ReaderPreferences = {

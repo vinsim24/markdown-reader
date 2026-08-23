@@ -1,3 +1,5 @@
+import { CheckIcon as Check } from '@phosphor-icons/react/Check';
+import { CopyIcon as Copy } from '@phosphor-icons/react/Copy';
 import {
   isValidElement,
   type ReactNode,
@@ -78,11 +80,6 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
   return (
     <div className="code-block">
       <div className="code-block-header">
-        <span className="code-window-dots" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </span>
         <span className="code-language">{language}</span>
         <button
           type="button"
@@ -90,7 +87,11 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
           onClick={copy}
           aria-label={`${copyLabel} ${language} code`}
         >
-          <span aria-hidden="true">⧉</span>
+          {copyState === 'copied' ? (
+            <Check size={13} aria-hidden="true" />
+          ) : (
+            <Copy size={13} aria-hidden="true" />
+          )}
           {copyLabel}
         </button>
       </div>

@@ -1,3 +1,5 @@
+import { FileTextIcon as FileText } from '@phosphor-icons/react/FileText';
+import { XIcon as X } from '@phosphor-icons/react/X';
 import type { FolderWorkspace } from '../lib/fileAccess';
 import type { DocumentHeading } from '../lib/headings';
 import FileTree from './FileTree';
@@ -43,11 +45,13 @@ export default function ReaderSidebar({
           onClick={onClose}
           aria-label="Close navigation"
         >
-          ×
+          <X size={17} aria-hidden="true" />
         </button>
       </div>
       <div className="file-card">
-        <div className="file-icon">MD</div>
+        <div className="file-icon" aria-hidden="true">
+          <FileText size={16} />
+        </div>
         <div>
           <strong>{fileName}</strong>
           <small>Local document · {readingMinutes} min read</small>
