@@ -474,6 +474,103 @@ body[data-theme="dark"] .app-shell.code-auto {
   color: var(--muted);
   font-size: 11px;
 }
+.reader-actions,
+.view-toggle,
+.markmap-actions {
+  display: flex;
+  align-items: center;
+}
+.view-toggle {
+  overflow: hidden;
+  margin-right: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.view-toggle button {
+  border: 0;
+  border-radius: 0;
+  padding: 7px 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+}
+.view-toggle button[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+}
+.markmap-view {
+  position: relative;
+  min-height: calc(100vh - 188px);
+  margin: 24px clamp(18px, 4vw, 56px) 40px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.markmap-view:fullscreen {
+  margin: 0;
+  min-height: 100vh;
+  border: 0;
+  border-radius: 0;
+}
+.markmap-toolbar {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  right: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  pointer-events: none;
+}
+.markmap-help {
+  border-radius: 7px;
+  padding: 7px 9px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--muted);
+  font-size: 11px;
+}
+.markmap-actions {
+  gap: 5px;
+  pointer-events: auto;
+}
+.markmap-actions button {
+  min-width: 34px;
+  min-height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 9px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 11px;
+}
+.markmap-actions button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.markmap-view > svg {
+  display: block;
+  width: 100%;
+  min-height: calc(100vh - 188px);
+  color: var(--text);
+}
+.markmap-view:fullscreen > svg {
+  min-height: 100vh;
+}
+.markmap-status {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: 1;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  color: var(--muted);
+}
+.markmap-status.error {
+  color: var(--danger);
+}
 .reader {
   max-width: var(--reading-width, 720px);
   margin: 0 auto;
@@ -568,6 +665,88 @@ body[data-theme="dark"] .app-shell.code-auto {
   padding: 4px 0 4px 20px;
   color: var(--muted);
   font-style: italic;
+}
+.obsidian-properties {
+  margin: 0 0 34px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 0.78em;
+}
+.obsidian-properties > div {
+  display: grid;
+  grid-template-columns: minmax(100px, 0.35fr) 1fr;
+  gap: 16px;
+  padding: 9px 13px;
+  border-bottom: 1px solid var(--border);
+}
+.obsidian-properties > div:last-child {
+  border-bottom: 0;
+}
+.obsidian-properties dt {
+  color: var(--muted);
+  font-weight: 700;
+}
+.obsidian-properties dd {
+  margin: 0;
+}
+.obsidian-tag {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 1px 7px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.84em;
+  font-weight: 700;
+}
+.reader .obsidian-callout {
+  margin: 28px 0;
+  border: 1px solid
+    color-mix(in srgb, var(--callout-color, var(--accent)) 35%, var(--border));
+  border-left: 4px solid var(--callout-color, var(--accent));
+  border-radius: 10px;
+  padding: 15px 18px;
+  background: color-mix(
+    in srgb,
+    var(--callout-color, var(--accent)) 9%,
+    var(--surface)
+  );
+  color: var(--text);
+  font-style: normal;
+}
+.obsidian-callout > p:first-child {
+  color: var(--callout-color, var(--accent));
+  font-weight: 750;
+}
+.obsidian-callout-tip,
+.obsidian-callout-info {
+  --callout-color: #168b91;
+}
+.obsidian-callout-warning {
+  --callout-color: #c06900;
+}
+.obsidian-callout-danger,
+.obsidian-callout-bug {
+  --callout-color: #b94152;
+}
+.obsidian-note-embed {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 55%, var(--border));
+  border-radius: 9px;
+  padding: 7px 10px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font: inherit;
+}
+.obsidian-note-embed span {
+  color: var(--accent);
+  font-size: 0.72em;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 .reader code {
   font-family: "JetBrains Mono", monospace;
@@ -1350,6 +1529,40 @@ body[data-font="system-mono"] .reader {
   }
 }
 @media (max-width: 640px) {
+  .secondary-example-action {
+    display: none;
+  }
+  .reader-toolbar {
+    height: auto;
+    min-height: 62px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+  .breadcrumbs {
+    display: none;
+  }
+  .reader-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .view-toggle {
+    margin-right: 0;
+  }
+  .markmap-view {
+    min-height: calc(100vh - 180px);
+    margin: 12px 8px 24px;
+  }
+  .markmap-view > svg {
+    min-height: calc(100vh - 180px);
+  }
+  .markmap-toolbar {
+    align-items: flex-end;
+    flex-direction: column-reverse;
+  }
+  .markmap-help {
+    max-width: 210px;
+  }
   .document-tabs {
     padding-left: 8px;
     padding-right: 8px;

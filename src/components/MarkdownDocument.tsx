@@ -7,12 +7,14 @@ import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import { rehypeHeadingIds } from '../lib/headings';
+import { parseObsidianDocument, remarkObsidian } from '../lib/obsidian';
 import { isExternalUrl } from '../lib/paths';
 import type { Theme } from '../lib/preferences';
 import CodeBlock from './CodeBlock';
 import LocalImage from './LocalImage';
 import MathExpression from './MathExpression';
 import MermaidDiagram from './MermaidDiagram';
+import ObsidianProperties from './ObsidianProperties';
 
 const markdownSanitizeSchema = {
   ...defaultSchema,
@@ -20,6 +22,15 @@ const markdownSanitizeSchema = {
   attributes: {
     ...defaultSchema.attributes,
     code: [['className', /^language-./, 'math-inline', 'math-display']],
+    blockquote: [
+      ...(defaultSchema.attributes?.blockquote || []),
+      ['className', /^obsidian-callout/],
+      ['dataCallout'],
+    ],
+    span: [
+      ...(defaultSchema.attributes?.span || []),
+      ['className', 'obsidian-tag'],
+    ],
   },
 };
 
@@ -96,10 +107,12 @@ export default function MarkdownDocument({
   search,
   theme,
 }: MarkdownDocumentProps) {
+  const obsidianDocument = parseObsidianDocument(markdown);
   return (
     <article className="reader">
+      <ObsidianProperties properties={obsidianDocument.properties} />
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
+        remarkPlugins={[remarkGfm, remarkMath, remarkObsidian]}
         rehypePlugins={[
           rehypeRaw,
           [rehypeSanitize, markdownSanitizeSchema],
@@ -186,14 +199,41 @@ export default function MarkdownDocument({
               </button>
             );
           },
-          img: ({ src, alt }) => (
-            <LocalImage
-              src={src}
-              alt={alt}
-              currentPath={activePath}
-              files={files}
-            />
-          ),
+          img: ({ src, alt, title }) => {
+            if (title === 'obsidian-note-embed') {
+              return (
+                <button
+                  type="button"
+                  className="obsidian-note-embed"
+                  onClick={() => onRelativeLink(src || '')}
+                >
+                  <span>Embedded note</span> {alt}
+                </button>
+              );
+            }
+            const embeddedWidth = title?.startsWith('obsidian-image-embed:')
+              ? Number(title.split(':')[1])
+              : 0;
+            return (
+              <LocalImage
+                src={src}
+                alt={alt}
+                currentPath={activePath}
+                files={files}
+                maxWidth={
+                  embeddedWidth
+                    ? Math.min(1200, Math.max(80, embeddedWidth))
+                    : undefined
+                }
+              />
+            );
+          },
+          blockquote: ({ className, children }) =>
+            className?.includes('obsidian-callout') ? (
+              <aside className={className}>{children}</aside>
+            ) : (
+              <blockquote>{children}</blockquote>
+            ),
           input: ({ checked, ...props }) => (
             <input
               {...props}
@@ -203,7 +243,7 @@ export default function MarkdownDocument({
           ),
         }}
       >
-        {markdown}
+        {obsidianDocument.markdown}
       </ReactMarkdown>
     </article>
   );

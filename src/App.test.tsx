@@ -11,6 +11,26 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 
+vi.mock('markmap-lib/no-plugins', () => ({
+  Transformer: class {
+    transform() {
+      return { root: { content: 'Example', children: [] } };
+    }
+  },
+}));
+
+vi.mock('markmap-view', () => ({
+  globalCSS: '',
+  Markmap: {
+    create: () => ({
+      destroy: vi.fn(),
+      fit: vi.fn().mockResolvedValue(undefined),
+      rescale: vi.fn().mockResolvedValue(undefined),
+      setData: vi.fn().mockResolvedValue(undefined),
+    }),
+  },
+}));
+
 class IntersectionObserverMock {
   observe = vi.fn();
   disconnect = vi.fn();
@@ -63,6 +83,52 @@ describe('critical reader interactions', () => {
       throw new Error('Cheat sheet action was not rendered.');
     await user.click(cheatSheetButton);
     expect(container.querySelectorAll('.document-tab-select')).toHaveLength(1);
+  });
+
+  it('renders the bundled Obsidian guide through the sanitized reader', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    await user.click(
+      screen
+        .getAllByRole('button', { name: 'Obsidian guide' })
+        .at(-1) as HTMLElement
+    );
+    expect(
+      await screen.findByText('Obsidian Markdown Cheat Sheet', {
+        selector: 'h1',
+      })
+    ).not.toBeNull();
+    expect(container.querySelector('.obsidian-properties')).not.toBeNull();
+    expect(container.querySelector('.obsidian-callout-tip')).not.toBeNull();
+    expect(container.querySelector('.obsidian-tag')?.textContent).toBe(
+      '#project/reader'
+    );
+    expect(container.querySelector('mark')?.textContent).toBe(
+      'highlight important passages'
+    );
+    expect(container.querySelector('.obsidian-note-embed')).not.toBeNull();
+  });
+
+  it('opens the bundled Markmap example as an alternate document view', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen
+        .getAllByRole('button', { name: 'Markmap example' })
+        .at(-1) as HTMLElement
+    );
+    expect(
+      screen.getByRole('region', { name: 'Mind map for Markmap Examples.md' })
+    ).not.toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'Mind map' }).getAttribute('aria-pressed')
+    ).toBe('true');
+
+    await user.click(screen.getByRole('button', { name: 'Reader' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Markmap Examples' })
+    ).not.toBeNull();
   });
 
   it('imports public Markdown through the URL dialog', async () => {

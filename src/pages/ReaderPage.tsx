@@ -4,6 +4,8 @@ import DocumentTabs from '../components/DocumentTabs';
 import ReaderOverlays from '../components/ReaderOverlays';
 import ReaderWorkspace from '../components/ReaderWorkspace';
 import cheatSheetMarkdown from '../content/MarkdownCheatSheet.md?raw';
+import obsidianCheatSheetMarkdown from '../content/ObsidianCheatSheet.md?raw';
+import markmapExamplesMarkdown from '../content/MarkmapExamples.md?raw';
 import { useActiveHeading } from '../hooks/useActiveHeading';
 import { useDocumentSessions } from '../hooks/useDocumentSessions';
 import { useReaderUi } from '../hooks/useReaderUi';
@@ -46,6 +48,24 @@ export default function ReaderPage() {
       title: 'Markdown Cheat Sheet.md',
     });
   };
+  const openObsidianGuide = () => {
+    sessions.openSessionDocument({
+      activePath: 'Obsidian Markdown Guide.md',
+      markdown: obsidianCheatSheetMarkdown,
+      sourceKey: 'bundled:obsidian-markdown-guide',
+      title: 'Obsidian Markdown Guide.md',
+    });
+  };
+  const openMarkmapExamples = () => {
+    sessions.openSessionDocument({
+      activePath: 'Markmap Examples.md',
+      markdown: markmapExamplesMarkdown,
+      sourceKey: 'bundled:markmap-examples',
+      title: 'Markmap Examples.md',
+    });
+    ui.setViewMode('mindmap');
+    ui.setSearchOpen(false);
+  };
   const importFromUrl = async (url: string) => {
     const document = await fetchRemoteMarkdown(url);
     sessions.openSessionDocument({
@@ -76,6 +96,8 @@ export default function ReaderPage() {
         navTrigger={ui.navTrigger}
         onCloseAll={closeAllDocuments}
         onOpenCheatSheet={openCheatSheet}
+        onOpenObsidianGuide={openObsidianGuide}
+        onOpenMarkmapExamples={openMarkmapExamples}
         onFolderFiles={(files) =>
           sessions.activateFolder(sessions.workspaceFromFileList(files))
         }
@@ -120,6 +142,8 @@ export default function ReaderPage() {
         }}
         onOpenFile={() => sessions.input.current?.click()}
         onOpenCheatSheet={openCheatSheet}
+        onOpenObsidianGuide={openObsidianGuide}
+        onOpenMarkmapExamples={openMarkmapExamples}
         onOpenFolder={sessions.openFolder}
         onOpenFolderFile={sessions.openFolderFile}
         onOpenSettings={ui.openSettings}
@@ -127,10 +151,15 @@ export default function ReaderPage() {
         onRelativeLink={sessions.openRelativeLink}
         onSetNav={ui.setNav}
         onSetSearch={ui.setSearch}
+        onSetViewMode={(viewMode) => {
+          ui.setViewMode(viewMode);
+          if (viewMode === 'mindmap') ui.setSearchOpen(false);
+        }}
         readingMinutes={readingMinutes}
         search={ui.search}
         searchOpen={ui.searchOpen}
         theme={reading.preferences.theme}
+        viewMode={ui.viewMode}
         words={words}
       />
       <ReaderOverlays

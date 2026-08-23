@@ -15,6 +15,7 @@ export function useReaderUi() {
   const [folderLoading, setFolderLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [urlImportOpen, setUrlImportOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'reader' | 'mindmap'>('reader');
   const settingsPanel = useRef<HTMLElement>(null);
   const settingsReturnFocus = useRef<HTMLButtonElement>(null);
   const navTrigger = useRef<HTMLButtonElement>(null);
@@ -36,6 +37,7 @@ export function useReaderUi() {
     setNav(false);
     setSettings(false);
     setUrlImportOpen(false);
+    setViewMode('reader');
   };
   const openUrlImport = (event: ReactMouseEvent<HTMLButtonElement>) => {
     urlImportReturnFocus.current = event.currentTarget;
@@ -116,5 +118,7 @@ export function useReaderUi() {
     settingsReturnFocus,
     urlImportOpen,
     urlImportReturnFocus,
+    viewMode,
+    setViewMode,
   };
 }

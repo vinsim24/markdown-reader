@@ -3,6 +3,7 @@ import type { DocumentTab } from '../lib/documentTabs';
 import type { DocumentHeading } from '../lib/headings';
 import type { Theme } from '../lib/preferences';
 import MarkdownDocument from './MarkdownDocument';
+import MarkmapView from './MarkmapView';
 import ReaderSidebar from './ReaderSidebar';
 import StatusNotice from './StatusNotice';
 import WelcomeView from './WelcomeView';
@@ -20,6 +21,8 @@ interface ReaderWorkspaceProps {
   onOpenFile: () => void;
   onOpenCheatSheet: () => void;
   onOpenFolder: () => void;
+  onOpenObsidianGuide: () => void;
+  onOpenMarkmapExamples: () => void;
   onOpenFolderFile: (
     path: string,
     anchor?: string,
@@ -34,6 +37,8 @@ interface ReaderWorkspaceProps {
   search: string;
   searchOpen: boolean;
   theme: Theme;
+  viewMode: 'reader' | 'mindmap';
+  onSetViewMode: (viewMode: 'reader' | 'mindmap') => void;
   words: number;
 }
 
@@ -56,6 +61,8 @@ export default function ReaderWorkspace({
   onOpenFile,
   onOpenCheatSheet,
   onOpenFolder,
+  onOpenObsidianGuide,
+  onOpenMarkmapExamples,
   onOpenFolderFile,
   onOpenSettings,
   onOpenUrlImport,
@@ -66,6 +73,8 @@ export default function ReaderWorkspace({
   search,
   searchOpen,
   theme,
+  viewMode,
+  onSetViewMode,
   words,
 }: ReaderWorkspaceProps) {
   const hasDocument = activeDocument !== undefined;
@@ -102,6 +111,22 @@ export default function ReaderWorkspace({
                 <strong>{activeDocument.title}</strong>
               </div>
               <div className="reader-actions">
+                <div className="view-toggle" aria-label="Document view">
+                  <button
+                    type="button"
+                    aria-pressed={viewMode === 'reader'}
+                    onClick={() => onSetViewMode('reader')}
+                  >
+                    Reader
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={viewMode === 'mindmap'}
+                    onClick={() => onSetViewMode('mindmap')}
+                  >
+                    Mind map
+                  </button>
+                </div>
                 <button
                   type="button"
                   className="subtle-button"
@@ -118,7 +143,7 @@ export default function ReaderWorkspace({
                 </button>
               </div>
             </div>
-            {searchOpen && (
+            {searchOpen && viewMode === 'reader' && (
               <div id="document-search" className="search-panel open">
                 <input
                   aria-label="Search this document"
@@ -134,14 +159,21 @@ export default function ReaderWorkspace({
               </div>
             )}
             <StatusNotice message={linkNotice} onDismiss={onDismissNotice} />
-            <MarkdownDocument
-              activePath={activeDocument.activePath}
-              files={activeDocument.folder?.files}
-              markdown={activeDocument.markdown}
-              onRelativeLink={onRelativeLink}
-              search={search}
-              theme={theme}
-            />
+            {viewMode === 'reader' ? (
+              <MarkdownDocument
+                activePath={activeDocument.activePath}
+                files={activeDocument.folder?.files}
+                markdown={activeDocument.markdown}
+                onRelativeLink={onRelativeLink}
+                search={search}
+                theme={theme}
+              />
+            ) : (
+              <MarkmapView
+                fileName={activeDocument.title}
+                markdown={activeDocument.markdown}
+              />
+            )}
             <footer className="reader-footer">
               <span>End of document</span>
               <span>•</span>
@@ -156,6 +188,8 @@ export default function ReaderWorkspace({
               onOpenCheatSheet={onOpenCheatSheet}
               onOpenFile={onOpenFile}
               onOpenFolder={onOpenFolder}
+              onOpenObsidianGuide={onOpenObsidianGuide}
+              onOpenMarkmapExamples={onOpenMarkmapExamples}
               onOpenUrlImport={onOpenUrlImport}
             />
           </>

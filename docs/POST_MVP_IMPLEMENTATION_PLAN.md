@@ -29,17 +29,18 @@ This document records the approved post-MVP feature order. Product requirements 
 - Do not add a server-side proxy; explain CORS, network, content-type, size, and validation failures clearly.
 - Treat fetched Markdown as untrusted input and keep the existing sanitization and safe-link policies.
 
-## Priority 5 — Obsidian Markdown and cheat sheet
+## Priority 5 — Obsidian Markdown and cheat sheet — Complete
 
 - Add a documented, read-only Obsidian compatibility subset: properties, wikilinks, embeds, callouts, tags, and highlights.
 - Resolve vault-relative notes and assets only inside a folder the user explicitly opened.
 - Provide a bundled Obsidian Markdown cheat sheet that opens in a tab.
 
-## Priority 6 — Markmap mind-map view
+## Priority 6 — Markmap mind-map view — Complete
 
 - Provide an interactive mind-map view of the active Markdown tab.
 - Support zoom, pan, branch folding, full screen, and SVG/PNG export.
 - Keep Reader and Mind Map as alternate views of the same session document.
+- Include a bundled example covering nested headings, lists, tasks, links, code, and foldable branches.
 
 ## Deferred — Editor
 

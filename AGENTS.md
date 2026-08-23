@@ -19,4 +19,5 @@ Before making changes, read this file and `docs/PRODUCT_SPEC.md`.
 - Follow the commit cadence explicitly requested for the task. For the current MVP completion, batch remaining coding, run the full verification suite once after coding is finished, then create the final commit and push.
 - Continue approved phases automatically; ask only when permissions, credentials, or a material product decision block progress.
 - Use Vitest for units, React Testing Library with `user-event` for components, and Playwright with axe for browser/accessibility coverage.
+- Ship advanced reader features with a bundled example and representative automated fixtures.
 - Run Chromium Playwright tests before each push. Test Firefox and WebKit before an MVP release, and never automate the native folder permission dialog.

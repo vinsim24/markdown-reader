@@ -92,6 +92,50 @@ test('opens the bundled Markdown cheat sheet in a reusable tab', async ({
   ).toHaveCount(1);
 });
 
+test('switches the active document to an interactive Markmap view', async ({
+  page,
+}) => {
+  const pageErrors: string[] = [];
+  page.on('pageerror', (error) => pageErrors.push(error.stack ?? error.message));
+  await page.getByRole('button', { name: 'Markmap example' }).first().click();
+
+  const mindMap = page.getByRole('region', {
+    name: 'Mind map for Markmap Examples.md',
+  });
+  await expect(mindMap.getByRole('img')).toBeVisible();
+  await expect(mindMap.locator('.markmap-node').first()).toBeVisible();
+  expect(pageErrors, 'mind map initialization errors').toEqual([]);
+  await expect(
+    mindMap.getByText('Drag to pan · scroll to zoom · select a branch to fold')
+  ).toBeVisible();
+  await mindMap.getByRole('button', { name: 'Zoom in' }).click();
+  await mindMap.getByRole('button', { name: 'Zoom out' }).click();
+  await mindMap.getByRole('button', { name: 'Fit' }).click();
+  expect(pageErrors, 'mind map control errors').toEqual([]);
+
+  const [svgDownload] = await Promise.all([
+    page.waitForEvent('download'),
+    mindMap.getByRole('button', { name: 'SVG' }).click(),
+  ]);
+  expect(svgDownload.suggestedFilename()).toBe('Markmap Examples.svg');
+  expect(pageErrors, 'mind map export errors').toEqual([]);
+
+  const accessibility = await new AxeBuilder({ page })
+    .include('.markmap-view')
+    .analyze();
+  expect(
+    accessibility.violations.filter((violation) =>
+      ['serious', 'critical'].includes(violation.impact || '')
+    )
+  ).toEqual([]);
+
+  await page.getByRole('button', { name: 'Reader' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Markmap Examples' })
+  ).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
+
 test('opens a single file, searches it, and uses Focus mode', async ({
   page,
 }) => {
@@ -189,7 +233,7 @@ test('opens the directory fallback and resolves local content', async ({
   ).toBeVisible();
   await expect(page.locator('.toc a[href="#details-1"]')).toBeVisible();
   await expect(page.locator('.reader img')).toHaveAttribute('src', /^blob:/);
-  await page.getByRole('button', { name: 'Home' }).click();
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'Fixture library' })
   ).toBeVisible();
@@ -277,6 +321,32 @@ test('opens the directory fallback and resolves local content', async ({
   await fileTree.locator('.tree-file[title="README.md"]').click();
   await page.getByRole('button', { name: 'Chapter details' }).click();
   await expect(page).toHaveURL(/#details$/);
+});
+
+test('renders Obsidian syntax and resolves vault-relative content', async ({
+  page,
+}) => {
+  const fixture = path.resolve('tests/fixtures/library');
+  await page.locator('input[webkitdirectory]').setInputFiles(fixture);
+  const fileTree = page.getByRole('complementary', {
+    name: 'Document navigation',
+  });
+  await fileTree
+    .locator('.tree-file[title="obsidian/Obsidian Home.md"]')
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Obsidian Home' })
+  ).toBeVisible();
+  await expect(page.locator('.obsidian-properties')).toContainText('aliases');
+  await expect(page.locator('.obsidian-callout-tip')).toBeVisible();
+  await expect(page.locator('.obsidian-tag')).toHaveText('#fixture/obsidian');
+  await expect(page.locator('.reader mark')).toHaveText('highlighted text');
+  await expect(page.locator('.reader img')).toHaveCSS('max-width', '180px');
+  await page.getByRole('button', { name: 'Daily workflow' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Daily note', exact: true })
+  ).toBeVisible();
+  await expect(page).toHaveURL(/#workflow$/);
 });
 
 test('accepts an individual Markdown file by drag and drop', async ({

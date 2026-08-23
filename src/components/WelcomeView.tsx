@@ -5,6 +5,8 @@ interface WelcomeViewProps {
   onOpenCheatSheet: () => void;
   onOpenFile: () => void;
   onOpenFolder: () => void;
+  onOpenObsidianGuide: () => void;
+  onOpenMarkmapExamples: () => void;
   onOpenUrlImport: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 
@@ -13,6 +15,8 @@ export default function WelcomeView({
   onOpenCheatSheet,
   onOpenFile,
   onOpenFolder,
+  onOpenObsidianGuide,
+  onOpenMarkmapExamples,
   onOpenUrlImport,
 }: WelcomeViewProps) {
   return (
@@ -44,6 +48,20 @@ export default function WelcomeView({
           onClick={onOpenCheatSheet}
         >
           Open cheat sheet
+        </button>
+        <button
+          type="button"
+          className="welcome-secondary"
+          onClick={onOpenObsidianGuide}
+        >
+          Obsidian guide
+        </button>
+        <button
+          type="button"
+          className="welcome-secondary"
+          onClick={onOpenMarkmapExamples}
+        >
+          Markmap example
         </button>
         <button
           type="button"

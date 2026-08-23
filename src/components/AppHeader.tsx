@@ -9,6 +9,8 @@ interface AppHeaderProps {
   navTrigger: RefObject<HTMLButtonElement | null>;
   onCloseAll: () => void;
   onOpenCheatSheet: () => void;
+  onOpenObsidianGuide: () => void;
+  onOpenMarkmapExamples: () => void;
   onOpenUrlImport: (event: MouseEvent<HTMLButtonElement>) => void;
   onFolderFiles: (files: FileList) => void;
   onOpenFile: (file: File) => void;
@@ -29,6 +31,8 @@ export default function AppHeader({
   navTrigger,
   onCloseAll,
   onOpenCheatSheet,
+  onOpenObsidianGuide,
+  onOpenMarkmapExamples,
   onOpenUrlImport,
   onFolderFiles,
   onOpenFile,
@@ -70,6 +74,20 @@ export default function AppHeader({
           onClick={onOpenCheatSheet}
         >
           <span>▤</span> Cheat sheet
+        </button>
+        <button
+          type="button"
+          className="toolbar-button secondary-example-action"
+          onClick={onOpenObsidianGuide}
+        >
+          <span>◈</span> Obsidian guide
+        </button>
+        <button
+          type="button"
+          className="toolbar-button secondary-example-action"
+          onClick={onOpenMarkmapExamples}
+        >
+          <span>⌘</span> Markmap example
         </button>
         <button
           type="button"

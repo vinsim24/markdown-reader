@@ -17,6 +17,7 @@ import {
   supportsDirectoryPicker,
   workspaceFromFileList,
 } from '../lib/fileAccess';
+import { resolveObsidianWikilink } from '../lib/obsidian';
 import { resolveMarkdownTarget } from '../lib/paths';
 
 interface DocumentSessionsOptions {
@@ -280,11 +281,9 @@ export function useDocumentSessions({
       );
       return;
     }
-    const target = resolveMarkdownTarget(
-      href,
-      activePath,
-      new Set(folder.markdownPaths)
-    );
+    const target =
+      resolveObsidianWikilink(href, activePath, folder.markdownPaths) ||
+      resolveMarkdownTarget(href, activePath, new Set(folder.markdownPaths));
     if (!target) {
       setLinkNotice(`Could not find “${href}” inside ${folder.name}.`);
       return;

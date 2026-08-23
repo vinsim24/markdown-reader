@@ -6,6 +6,7 @@ interface LocalImageProps {
   alt?: string;
   currentPath: string;
   files?: Map<string, File>;
+  maxWidth?: number;
 }
 
 export default function LocalImage({
@@ -13,6 +14,7 @@ export default function LocalImage({
   alt = '',
   currentPath,
   files,
+  maxWidth,
 }: LocalImageProps) {
   const [url, setUrl] = useState(src);
   const [missing, setMissing] = useState(false);
@@ -43,5 +45,12 @@ export default function LocalImage({
         {alt || 'Image unavailable'}
       </span>
     );
-  return <img src={url} alt={alt} onError={() => setMissing(true)} />;
+  return (
+    <img
+      src={url}
+      alt={alt}
+      style={maxWidth ? { maxWidth: `${maxWidth}px` } : undefined}
+      onError={() => setMissing(true)}
+    />
+  );
 }
