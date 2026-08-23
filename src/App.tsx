@@ -1,60 +1,30 @@
-import type { Element, Root, RootContent, Text } from 'hast';
 import {
   type CSSProperties,
-  isValidElement,
   type MouseEvent as ReactMouseEvent,
-  type ReactNode,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import ReactMarkdown from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
-import FileTree from './components/FileTree';
-import LocalImage from './components/LocalImage';
-import MathExpression from './components/MathExpression';
-import MermaidDiagram from './components/MermaidDiagram';
+import MarkdownDocument from './components/MarkdownDocument';
+import ReaderSidebar from './components/ReaderSidebar';
+import ReadingSettings from './components/ReadingSettings';
 import {
   type FolderWorkspace,
   pickDirectory,
   supportsDirectoryPicker,
   workspaceFromFileList,
 } from './lib/fileAccess';
-import { extractHeadings, rehypeHeadingIds } from './lib/headings';
-import { isExternalUrl, resolveMarkdownTarget } from './lib/paths';
+import { extractHeadings } from './lib/headings';
+import { resolveMarkdownTarget } from './lib/paths';
 import {
   type CustomColors,
   contrastRatio,
   defaultPreferences,
-  type Font,
   loadPreferences,
   savePreferences,
-  type Theme,
   themeColors,
-  themeFonts,
 } from './lib/preferences';
-
-const themes: { key: Theme; label: string; swatch: string }[] = [
-  { key: 'light', label: 'Light', swatch: 'light-swatch' },
-  { key: 'dark', label: 'Dark', swatch: 'dark-swatch' },
-  { key: 'sepia', label: 'Sepia', swatch: 'sepia-swatch' },
-  { key: 'mono', label: 'Mono', swatch: 'mono-swatch' },
-  { key: 'cappuccino', label: 'Cappuccino', swatch: 'cappuccino-swatch' },
-  { key: 'contrast', label: 'High Contrast', swatch: 'contrast-swatch' },
-];
-
-const markdownSanitizeSchema = {
-  ...defaultSchema,
-  tagNames: [...(defaultSchema.tagNames || []), 'abbr', 'mark'],
-  attributes: {
-    ...defaultSchema.attributes,
-    code: [['className', /^language-./, 'math-inline', 'math-display']],
-  },
-};
 
 function decodePathSafe(value: string) {
   try {
@@ -62,62 +32,6 @@ function decodePathSafe(value: string) {
   } catch {
     return value;
   }
-}
-
-function rehypeHighlight(search: string) {
-  return (tree: Root) => {
-    const query = search.trim().toLowerCase();
-    if (!query) return;
-
-    const highlight = (node: Root | Element, excluded = false) => {
-      const skip =
-        excluded ||
-        (node.type === 'element' && ['code', 'pre'].includes(node.tagName));
-      const children: RootContent[] = [];
-
-      for (const child of node.children) {
-        if (child.type === 'element') highlight(child, skip);
-        if (skip || child.type !== 'text') {
-          children.push(child);
-          continue;
-        }
-
-        let offset = 0;
-        let match = child.value.toLowerCase().indexOf(query);
-        while (match !== -1) {
-          if (match > offset) {
-            children.push({
-              type: 'text',
-              value: child.value.slice(offset, match),
-            } as Text);
-          }
-          children.push({
-            type: 'element',
-            tagName: 'mark',
-            properties: {},
-            children: [
-              {
-                type: 'text',
-                value: child.value.slice(match, match + query.length),
-              },
-            ],
-          });
-          offset = match + query.length;
-          match = child.value.toLowerCase().indexOf(query, offset);
-        }
-        if (offset < child.value.length) {
-          children.push({
-            type: 'text',
-            value: child.value.slice(offset),
-          } as Text);
-        }
-      }
-
-      node.children = children;
-    };
-
-    highlight(tree);
-  };
 }
 
 export default function App() {
@@ -514,68 +428,22 @@ export default function App() {
       </header>
       <div className={`workspace${hasDocument ? '' : ' empty-workspace'}`}>
         {hasDocument && (
-          <aside
-            id="reader-sidebar"
-            className={`sidebar ${nav ? 'open' : ''}`}
-            aria-label="Document navigation"
-          >
-            <div className="sidebar-heading">
-              <span>Navigation</span>
-              <button
-                type="button"
-                className="close-nav mobile-only"
-                onClick={() => setNav(false)}
-                aria-label="Close navigation"
-              >
-                ×
-              </button>
-            </div>
-            <div className="file-card">
-              <div className="file-icon">MD</div>
-              <div>
-                <strong>{fileName}</strong>
-                <small>Local document · {readingMinutes} min read</small>
-              </div>
-            </div>
-            {folder && (
-              <div className="folder-section">
-                <div className="toc-label">{folder.name}</div>
-                {folder.markdownPaths.length > 0 ? (
-                  <FileTree
-                    paths={folder.markdownPaths}
-                    activePath={activePath}
-                    onOpen={openFolderFile}
-                  />
-                ) : (
-                  <p className="tree-empty">No Markdown files found</p>
-                )}
-              </div>
-            )}
-            <div className="toc-label">On this page</div>
-            <nav className="toc">
-              {headings.map((heading) => (
-                <a
-                  key={heading.id}
-                  className={`level-${heading.level}${activeHeading === heading.id ? ' active' : ''}`}
-                  href={`#${heading.id}`}
-                  onClick={() => {
-                    setActiveHeading(heading.id);
-                    setNav(false);
-                  }}
-                  aria-current={
-                    activeHeading === heading.id ? 'location' : undefined
-                  }
-                >
-                  {heading.text}
-                </a>
-              ))}
-            </nav>
-            <div className="sidebar-footer">
-              <span className="status-dot" />
-              Local only <span className="footer-separator">·</span>
-              {words.toLocaleString()} words
-            </div>
-          </aside>
+          <ReaderSidebar
+            activeHeading={activeHeading}
+            activePath={activePath}
+            fileName={fileName}
+            folder={folder}
+            headings={headings}
+            navOpen={nav}
+            onClose={() => setNav(false)}
+            onHeadingSelect={(id) => {
+              setActiveHeading(id);
+              setNav(false);
+            }}
+            onOpenFile={openFolderFile}
+            readingMinutes={readingMinutes}
+            words={words}
+          />
         )}
         <main className="main-area">
           {hasDocument ? (
@@ -624,105 +492,14 @@ export default function App() {
                 </div>
               )}
               {notice}
-              <article className="reader">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[
-                    rehypeRaw,
-                    [rehypeSanitize, markdownSanitizeSchema],
-                    rehypeHeadingIds,
-                    [rehypeHighlight, search],
-                  ]}
-                  components={{
-                    pre: ({ children }) => {
-                      const code = isValidElement<{
-                        className?: string;
-                        children?: ReactNode;
-                      }>(children)
-                        ? children
-                        : null;
-                      const classes = code?.props.className?.split(/\s+/) || [];
-                      if (code && classes.includes('language-mermaid')) {
-                        return (
-                          <MermaidDiagram
-                            source={String(code.props.children).replace(
-                              /\n$/,
-                              ''
-                            )}
-                            theme={preferences.theme}
-                          />
-                        );
-                      }
-                      if (code && classes.includes('math-display')) {
-                        return (
-                          <MathExpression
-                            display
-                            source={String(code.props.children).replace(
-                              /\n$/,
-                              ''
-                            )}
-                          />
-                        );
-                      }
-                      return <pre>{children}</pre>;
-                    },
-                    code: ({ className, children }) =>
-                      className?.split(/\s+/).includes('math-inline') ? (
-                        <MathExpression
-                          display={false}
-                          source={String(children).replace(/\n$/, '')}
-                        />
-                      ) : (
-                        <code className={className}>{children}</code>
-                      ),
-                    a: ({ href = '', children, ...props }) => {
-                      if (href.startsWith('#'))
-                        return (
-                          <a href={href} {...props}>
-                            {children}
-                          </a>
-                        );
-                      if (/^https?:\/\//i.test(href)) {
-                        return (
-                          <a
-                            href={href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            {...props}
-                          >
-                            {children}
-                          </a>
-                        );
-                      }
-                      if (isExternalUrl(href))
-                        return (
-                          <a href={href} {...props}>
-                            {children}
-                          </a>
-                        );
-                      return (
-                        <button
-                          type="button"
-                          className="relative-link"
-                          onClick={() => openRelativeLink(href)}
-                        >
-                          {children}
-                        </button>
-                      );
-                    },
-                    img: ({ src, alt }) => (
-                      <LocalImage
-                        src={src}
-                        alt={alt}
-                        currentPath={activePath}
-                        files={folder?.files}
-                      />
-                    ),
-                  }}
-                >
-                  {markdown}
-                </ReactMarkdown>
-              </article>
+              <MarkdownDocument
+                activePath={activePath}
+                files={folder?.files}
+                markdown={markdown}
+                onRelativeLink={openRelativeLink}
+                search={search}
+                theme={preferences.theme}
+              />
               <footer className="reader-footer">
                 <span>End of document</span>
                 <span>•</span>
@@ -792,204 +569,20 @@ export default function App() {
         />
       )}
       {settings && (
-        <section
-          ref={settingsPanel}
-          id="reading-settings"
-          className="settings-panel open"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="settings-title"
-        >
-          <div className="settings-header">
-            <div>
-              <span className="eyebrow">Personalize</span>
-              <h2 id="settings-title">Reading settings</h2>
-            </div>
-            <button
-              type="button"
-              className="close-button"
-              onClick={closeSettings}
-              aria-label="Close reading settings"
-            >
-              ×
-            </button>
-          </div>
-          <div className="setting-group">
-            <label htmlFor="reader-font">Font</label>
-            <select
-              id="reader-font"
-              value={preferences.font}
-              onChange={(e) =>
-                setPreferences((current) => ({
-                  ...current,
-                  font: e.target.value as Font,
-                  fontExplicit: true,
-                }))
-              }
-            >
-              <option value="inter">Inter</option>
-              <option value="source-serif">Source Serif 4</option>
-              <option value="literata">Literata</option>
-              <option value="charter">Charter</option>
-              <option value="atkinson">Atkinson Hyperlegible</option>
-              <option value="system-sans">System Sans</option>
-              <option value="jetbrains">JetBrains Mono</option>
-              <option value="system-mono">System Mono</option>
-            </select>
-          </div>
-          <div className="setting-group">
-            <span className="setting-label">Theme</span>
-            <div className="theme-grid">
-              {themes.map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  className={`theme-choice ${preferences.theme === item.key ? 'active' : ''}`}
-                  onClick={() =>
-                    setPreferences((current) => ({
-                      ...current,
-                      theme: item.key,
-                      font: current.fontExplicit
-                        ? current.font
-                        : themeFonts[item.key],
-                      customColors: undefined,
-                    }))
-                  }
-                >
-                  <i className={`swatch ${item.swatch}`} />
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="setting-group">
-            <div className="range-label">
-              <label htmlFor="text-size">Text size</label>
-              <span>{preferences.size}px</span>
-            </div>
-            <input
-              type="range"
-              id="text-size"
-              min="15"
-              max="23"
-              value={preferences.size}
-              onChange={(e) =>
-                setPreferences((current) => ({
-                  ...current,
-                  size: Number(e.target.value),
-                }))
-              }
-            />
-          </div>
-          <div className="setting-group">
-            <div className="range-label">
-              <label htmlFor="reading-width">Reading width</label>
-              <span>{preferences.width}px</span>
-            </div>
-            <input
-              type="range"
-              id="reading-width"
-              min="600"
-              max="900"
-              value={preferences.width}
-              step="20"
-              onChange={(e) =>
-                setPreferences((current) => ({
-                  ...current,
-                  width: Number(e.target.value),
-                }))
-              }
-            />
-          </div>
-          <div className="setting-group">
-            <div className="range-label">
-              <label htmlFor="line-height">Line height</label>
-              <span>{preferences.lineHeight.toFixed(2)}</span>
-            </div>
-            <input
-              id="line-height"
-              type="range"
-              min="1.35"
-              max="2.1"
-              step="0.05"
-              value={preferences.lineHeight}
-              onChange={(event) =>
-                setPreferences((current) => ({
-                  ...current,
-                  lineHeight: Number(event.target.value),
-                }))
-              }
-            />
-          </div>
-          <div className="setting-group">
-            <label htmlFor="code-theme">Code-block theme</label>
-            <select
-              id="code-theme"
-              value={preferences.codeTheme}
-              onChange={(event) =>
-                setPreferences((current) => ({
-                  ...current,
-                  codeTheme: event.target.value as 'auto' | 'light' | 'dark',
-                }))
-              }
-            >
-              <option value="auto">Auto</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </div>
-          <fieldset className="setting-group color-controls">
-            <legend>Custom colors</legend>
-            {(
-              [
-                ['background', 'Background'],
-                ['text', 'Text'],
-                ['accent', 'Accent / links'],
-              ] as const
-            ).map(([key, label]) => (
-              <label key={key}>
-                <span>{label}</span>
-                <input
-                  type="color"
-                  value={selectedColors[key]}
-                  onChange={(event) => setCustomColor(key, event.target.value)}
-                />
-              </label>
-            ))}
-            {lowContrast && (
-              <p className="contrast-warning" role="alert">
-                Background and text contrast is below the recommended 4.5:1
-                ratio.
-              </p>
-            )}
-            <button
-              type="button"
-              className="reset-button compact"
-              onClick={() =>
-                setPreferences((current) => ({
-                  ...current,
-                  font: themeFonts[current.theme],
-                  fontExplicit: false,
-                  codeTheme: 'auto',
-                  customColors: undefined,
-                }))
-              }
-            >
-              Reset theme defaults
-            </button>
-          </fieldset>
-          <button
-            type="button"
-            className="reset-button"
-            onClick={() => {
-              localStorage.removeItem('markdown-reader:preferences');
-              skipPreferenceSave.current = true;
-              setPreferences({ ...defaultPreferences });
-            }}
-          >
-            Reset all preferences
-          </button>
-        </section>
+        <ReadingSettings
+          lowContrast={lowContrast}
+          onClose={closeSettings}
+          onResetAll={() => {
+            localStorage.removeItem('markdown-reader:preferences');
+            skipPreferenceSave.current = true;
+            setPreferences({ ...defaultPreferences });
+          }}
+          onSetCustomColor={setCustomColor}
+          panelRef={settingsPanel}
+          preferences={preferences}
+          selectedColors={selectedColors}
+          setPreferences={setPreferences}
+        />
       )}
     </div>
   );

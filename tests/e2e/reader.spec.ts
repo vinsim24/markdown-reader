@@ -73,6 +73,26 @@ test('opens the directory fallback and resolves local content', async ({
   await expect(page.locator('.mermaid-diagram')).not.toContainText(
     'flowchart LR'
   );
+  await page.getByRole('button', { name: 'Open reading settings' }).click();
+  for (const [theme, fill] of [
+    ['Light', 'rgb(227, 238, 233)'],
+    ['Dark', 'rgb(41, 64, 54)'],
+    ['Sepia', 'rgb(234, 216, 196)'],
+    ['Mono', 'rgb(236, 236, 234)'],
+    ['Cappuccino', 'rgb(230, 205, 187)'],
+    ['High Contrast', 'rgb(255, 255, 255)'],
+  ] as const) {
+    await page.getByRole('button', { name: theme, exact: true }).click();
+    await expect(page.locator('.mermaid-diagram .node rect').first()).toHaveCSS(
+      'fill',
+      fill
+    );
+  }
+  await page.getByRole('button', { name: 'Light', exact: true }).click();
+  await page
+    .getByRole('dialog', { name: 'Reading settings' })
+    .getByRole('button', { name: 'Close reading settings' })
+    .click();
   await page.getByRole('button', { name: 'Markdown-Cheat-sheet.md' }).click();
   await expect(page.locator('.reader .katex')).toHaveCount(5);
   await expect(page.locator('.reader sup').first()).toContainText('2');
@@ -84,6 +104,46 @@ test('opens the directory fallback and resolves local content', async ({
   );
   await expect(page.locator('.reader mark')).toHaveText('Highlighted text');
   await expect(page.locator('.reader script')).toHaveCount(0);
+  await expect(
+    page.getByRole('heading', { name: 'Text Formatting' })
+  ).toHaveCSS('border-bottom-style', 'solid');
+  const codeBlocks = page.locator('.reader .code-block');
+  await expect(codeBlocks).toHaveCount(3);
+  await expect(codeBlocks.nth(0).locator('.code-language')).toHaveText(
+    'JavaScript'
+  );
+  await expect(codeBlocks.nth(1).locator('.code-language')).toHaveText(
+    'Python'
+  );
+  await expect(codeBlocks.nth(2).locator('.code-language')).toHaveText('JSON');
+  await expect(
+    codeBlocks.nth(0).locator('.hljs-keyword').first()
+  ).toBeVisible();
+  const readerA11y = await new AxeBuilder({ page })
+    .include('.reader')
+    .analyze();
+  expect(
+    readerA11y.violations.filter((violation) =>
+      ['serious', 'critical'].includes(violation.impact || '')
+    )
+  ).toEqual([]);
+  await expect(
+    codeBlocks.nth(0).getByRole('button', { name: 'Copy JavaScript code' })
+  ).toBeVisible();
+  const diagramToolbar = page
+    .getByRole('toolbar', { name: 'Mermaid diagram actions' })
+    .first();
+  await expect(
+    diagramToolbar.getByRole('button', { name: 'View diagram full screen' })
+  ).toBeVisible();
+  await expect(
+    diagramToolbar.getByRole('button', { name: 'Copy' })
+  ).toBeVisible();
+  const [svgDownload] = await Promise.all([
+    page.waitForEvent('download'),
+    diagramToolbar.getByRole('button', { name: 'SVG' }).click(),
+  ]);
+  expect(svgDownload.suggestedFilename()).toBe('mermaid-diagram.svg');
   await page.getByRole('button', { name: 'README.md' }).click();
   await page.getByRole('button', { name: 'Chapter details' }).click();
   await expect(page).toHaveURL(/#details$/);

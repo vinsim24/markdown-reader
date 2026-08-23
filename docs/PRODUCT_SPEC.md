@@ -40,7 +40,7 @@
 - [x] Reading preferences stored locally
 - [x] External links open safely in another tab
 - [x] Relative Markdown links and images resolve inside a granted folder
-- [x] Tables, task lists, ordered lists, blockquotes, images, code blocks, KaTeX math, sanitized inline HTML, and Mermaid diagrams
+- [x] Tables, task lists, ordered lists, blockquotes, images, syntax-highlighted code blocks with copy controls, KaTeX math, sanitized inline HTML, and themed Mermaid diagrams with copy, full-screen, PNG, and SVG controls
 
 ## Themes
 
