@@ -4,7 +4,7 @@
 
 **Name:** Markdown Reader
 
-**Goal:** Create a private, responsive Markdown reader optimized for comfortable long-form reading. It should eventually run as a browser application, Docker container, and cross-platform desktop application.
+**Goal:** Create a private, responsive Markdown reader and safe local editor optimized for comfortable long-form reading. It should eventually run as a browser application, Docker container, and cross-platform desktop application.
 
 ## Current Stack
 
@@ -94,6 +94,8 @@
 - Accessibility and readable contrast are required
 - Mono and Cappuccino are additional presets, not replacements
 
+The approved visual, theme, editor, and favicon direction is defined in [`INK_AND_PAPER_REVAMP_SPEC.md`](INK_AND_PAPER_REVAMP_SPEC.md). The reference applications inform interaction patterns only; Markdown Reader keeps its own quieter brand and simpler reading-first shell.
+
 ## Resolved MVP Problems
 
 - [x] Focus mode has a working handler, Exit Focus control, and Escape-key support.
@@ -122,9 +124,14 @@ The approved sequence is maintained in [`POST_MVP_IMPLEMENTATION_PLAN.md`](POST_
 4. Direct browser URL import and public GitHub README support — complete
 5. Read-only Obsidian Markdown subset and bundled cheat sheet — complete
 6. Markmap mind-map view for the active document — complete
-7. Editor functionality only after a separate product and security review
+7. Ink & Paper brand foundation and favicon
+8. Product-shell and theme refinement
+9. Session-local CodeMirror editor with Reader, Editor, and responsive Split modes
+10. Capability-aware save/download flow and editor formatting tools
 
-Longer-term items include Tauri desktop packaging, persistent folder permissions, cloud synchronization, bookmarks/history, document export, large-library indexing, and custom theme preset management.
+The ordered milestones, editor security boundaries, and verification criteria are defined in [`INK_AND_PAPER_REVAMP_SPEC.md`](INK_AND_PAPER_REVAMP_SPEC.md). This specification completes the editor product/security review; it does not mark editor implementation complete.
+
+Longer-term items include Tauri desktop packaging, persistent folder permissions, cloud synchronization, bookmarks/history, broader document export, large-library indexing, and custom theme preset management.
 
 Remote URL imports are an explicit user-directed download, not an upload. They must use direct browser fetching without a server proxy, remain subject to browser CORS controls, pass through the existing untrusted-Markdown sanitization pipeline, and never weaken local file-access boundaries.
 

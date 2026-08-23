@@ -1,6 +1,6 @@
 # Markdown Reader Development Rules
 
-Before making changes, read this file and `docs/PRODUCT_SPEC.md`.
+Before making changes, read this file and `docs/PRODUCT_SPEC.md`. For brand, theme, shell, favicon, or editor work, also read `docs/INK_AND_PAPER_REVAMP_SPEC.md`.
 
 - Work directly in this repository and preserve unrelated user changes.
 - Use React and TypeScript in strict mode; keep the interface responsive and accessible.

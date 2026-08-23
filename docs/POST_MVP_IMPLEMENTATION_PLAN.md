@@ -42,9 +42,19 @@ This document records the approved post-MVP feature order. Product requirements 
 - Keep Reader and Mind Map as alternate views of the same session document.
 - Include a bundled example covering nested headings, lists, tasks, links, code, and foldable branches.
 
-## Deferred — Editor
+## Priorities 7–13 — Ink & Paper Revamp — Approved
 
-Editing and saving Markdown remain deferred until the reader, tabs, imports, Obsidian rendering, and Markmap view are stable. Editor work must receive a separate product and security review before implementation.
+The product and security review for editing is complete. The authoritative scope, security boundaries, design tokens, acceptance criteria, and detailed order are in [`INK_AND_PAPER_REVAMP_SPEC.md`](INK_AND_PAPER_REVAMP_SPEC.md).
+
+7. Brand foundation and favicon
+8. Product-shell refinement
+9. Theme refinement
+10. Editor foundation with CodeMirror 6
+11. Responsive Split view and live preview
+12. Capability-aware Save, Save As, Download, and dirty-state safeguards
+13. Editor formatting toolbar and accessibility polish
+
+Implement and verify one priority at a time. Editing remains session-only by default, never uploads content, never silently overwrites input-selected files, and does not persist filesystem handles.
 
 ## Verification gates
 
@@ -52,3 +62,4 @@ Editing and saving Markdown remain deferred until the reader, tabs, imports, Obs
 - Add Chromium Playwright coverage for opening, switching, and closing tabs at desktop and mobile widths.
 - Run `npm run verify` after each priority and Chromium Playwright before every push.
 - Preserve the manual Chrome or Edge Open Folder permission-flow release gate.
+- Before the editor release, manually verify the writable Save permission flow in Chrome or Edge on Windows.
