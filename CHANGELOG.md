@@ -2,6 +2,13 @@
 
 Markdown Reader follows [Semantic Versioning](https://semver.org/). This file records user-visible changes beginning with the editor milestone.
 
+## [0.3.2] - 2026-08-24
+
+### Changed
+
+- Docker release automation now matches the registry policy: numbered release tags remain immutable while `latest` is a mutable pointer to the newest stable release.
+- Documentation distinguishes reproducible pinned deployments from the rolling `latest` convenience tag.
+
 ## [0.3.1] - 2026-08-24
 
 ### Changed
