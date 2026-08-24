@@ -2,6 +2,14 @@
 
 Markdown Reader follows [Semantic Versioning](https://semver.org/). This file records user-visible changes beginning with the editor milestone.
 
+## [0.3.1] - 2026-08-24
+
+### Changed
+
+- Docker releases now publish a multi-platform manifest with native `linux/amd64` and `linux/arm64` images.
+- Pull requests validate both Docker target architectures, while version tags publish semantic-version, immutable commit, and `latest` tags through GitHub Actions.
+- Docker publishing actions use Node 24-based releases.
+
 ## [0.3.0] - 2026-08-23
 
 ### Added

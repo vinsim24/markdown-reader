@@ -1,7 +1,8 @@
 # Markdown Reader
 
-[![Version](https://img.shields.io/badge/version-0.3.0-315f8c)](package.json)
+[![Version](https://img.shields.io/badge/version-0.3.1-315f8c)](package.json)
 [![CI](https://github.com/vinsim24/markdown-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/vinsim24/markdown-reader/actions/workflows/ci.yml)
+[![Docker](https://github.com/vinsim24/markdown-reader/actions/workflows/docker.yml/badge.svg)](https://github.com/vinsim24/markdown-reader/actions/workflows/docker.yml)
 [![Node.js 24](https://img.shields.io/badge/Node.js-24-3c873a?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/vinsim24/markdown-reader?logo=docker)](https://hub.docker.com/r/vinsim24/markdown-reader)
 [![License: MIT](https://img.shields.io/badge/License-MIT-d8a657.svg)](LICENSE)
@@ -78,8 +79,8 @@ docker run --rm -p 8787:8080 vinsim24/markdown-reader:latest
 For a reproducible deployment, pin the current release instead of `latest`:
 
 ```bash
-docker pull vinsim24/markdown-reader:0.3.0
-docker run --rm -p 8787:8080 vinsim24/markdown-reader:0.3.0
+docker pull vinsim24/markdown-reader:0.3.1
+docker run --rm -p 8787:8080 vinsim24/markdown-reader:0.3.1
 ```
 
 Or build it from source:
@@ -91,7 +92,7 @@ docker run --rm -p 8787:8080 markdown-reader:local
 
 Open <http://localhost:8787>. Port `8787` is the recommended host default because `8080` is commonly occupied; the container continues to listen on its unprivileged internal port `8080`, and any free host port can be mapped to it.
 
-The reproducible multi-stage image builds with Node 24 and serves through unprivileged Nginx with a health endpoint, SPA routing, immutable asset caching, and security headers. It contains no user files and requires no host filesystem mount. See [Docker deployment](docs/DOCKER_DEPLOYMENT.md) for health checks, container browser testing, and release tagging.
+The reproducible multi-stage image builds with Node 24 and serves through unprivileged Nginx with a health endpoint, SPA routing, immutable asset caching, and security headers. Published releases include native `linux/amd64` and `linux/arm64` images, so Intel/AMD hosts and Apple Silicon Macs do not need cross-architecture emulation. The image contains no user files and requires no host filesystem mount. See [Docker deployment](docs/DOCKER_DEPLOYMENT.md) for health checks, container browser testing, and release tagging.
 
 ## Fonts and licenses
 
