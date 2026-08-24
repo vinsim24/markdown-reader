@@ -14,7 +14,8 @@ Before making changes, read this file and `docs/PRODUCT_SPEC.md`. For brand, the
 
 ## Milestone Workflow
 
-- Work on the current `main` branch; do not create feature branches, pull requests, tags, or releases unless explicitly requested.
+- Treat `main` as protected. Make every repository change on a focused branch and merge it through a pull request; never commit or push changes directly to `main`.
+- Never merge a pull request until the user explicitly approves that specific merge, even when every required check passes. Opening or updating a pull request is not merge approval.
 - Deliver major workstreams on focused branches and merge them through reviewed pull requests after their required checks pass. Complete Ink & Paper first, verify Docker deployment next, and begin editor work only after both are merged. Do not code these priorities directly on `main`.
 - Keep feature branches after pull requests are merged; do not delete local or remote branches unless explicitly requested.
 - Do not rewrite Git history. Stop if unexpected user changes conflict with the task.
