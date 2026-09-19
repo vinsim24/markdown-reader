@@ -1,4 +1,10 @@
-import type { FolderWorkspace } from './fileAccess';
+import type {
+  FileHandleLike,
+  FileVersion,
+  FolderWorkspace,
+} from './fileAccess';
+
+export type DocumentSourceType = 'bundled' | 'file' | 'folder' | 'remote';
 
 export interface EditorSelection {
   anchor: number;
@@ -12,6 +18,9 @@ export interface DocumentTab {
   editorScrollTop: number;
   editorSelection: EditorSelection;
   folder?: FolderWorkspace;
+  fileHandle?: FileHandleLike;
+  diskVersion?: FileVersion;
+  externalMarkdown?: string;
   id: string;
   markdown: string;
   originalMarkdown: string;
@@ -20,15 +29,19 @@ export interface DocumentTab {
   sourceKey: string;
   splitRatio: number;
   title: string;
+  sourceType: DocumentSourceType;
   viewMode: DocumentViewMode;
 }
 
 export interface DocumentTabInput {
   activePath: string;
   folder?: FolderWorkspace;
+  fileHandle?: FileHandleLike;
+  diskVersion?: FileVersion;
   markdown: string;
   sourceKey: string;
   title: string;
+  sourceType?: DocumentSourceType;
   viewMode?: DocumentViewMode;
 }
 
@@ -67,6 +80,7 @@ export function createDocumentTab(
     previewScrollTop: 0,
     scrollTop: 0,
     splitRatio: 50,
+    sourceType: document.sourceType ?? 'bundled',
     viewMode: document.viewMode ?? 'reader',
   };
 }

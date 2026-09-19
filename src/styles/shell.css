@@ -331,6 +331,175 @@
   margin: 0;
 }
 
+.recent-documents {
+  grid-column: 1 / -1;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+}
+
+.recent-documents-heading,
+.recent-documents-heading > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+}
+
+.recent-documents-heading h2 {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+
+.recent-documents-heading > div svg {
+  color: var(--accent);
+}
+
+.recent-clear {
+  padding: 6px 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.recent-access-preference {
+  max-width: 540px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 13px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.recent-access-preference input {
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+
+.recent-access-preference strong,
+.recent-access-preference span span {
+  display: block;
+}
+
+.recent-access-preference strong {
+  color: var(--text);
+  font-size: 11px;
+}
+
+.recent-document-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 24px;
+  margin-top: 12px;
+}
+
+.recent-document {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  align-items: center;
+  border-radius: var(--control-radius);
+}
+
+.recent-document:hover {
+  background: var(--surface-2);
+}
+
+.recent-document-open {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 8px;
+  text-align: left;
+}
+
+.recent-document-open > svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.recent-document-open > span,
+.recent-document-open strong,
+.recent-document-open span span {
+  min-width: 0;
+  display: block;
+}
+
+.recent-document-open strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-document-open span span {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.recent-document-remove {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--control-radius);
+  color: var(--muted);
+}
+
+.recent-document-remove:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.disk-conflict {
+  margin: 12px clamp(22px, 4vw, 60px) 0;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--warning-border, var(--border));
+  border-radius: var(--control-radius);
+  background: var(--surface-2);
+}
+
+.disk-conflict strong,
+.disk-conflict span {
+  display: block;
+}
+
+.disk-conflict strong {
+  font-size: 12px;
+}
+
+.disk-conflict span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.disk-conflict-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.disk-conflict-actions button {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 650;
+}
+
 .reader-toolbar {
   min-height: 58px;
   height: 58px;
@@ -683,9 +852,34 @@
   }
 }
 
+@media (max-width: 900px) {
+  .document-action {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+  }
+
+  .document-action span {
+    display: none;
+  }
+}
+
 @media (max-width: 780px) {
   .welcome {
     width: min(620px, calc(100% - 40px));
+  }
+
+  .recent-document-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .disk-conflict {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .disk-conflict-actions {
+    justify-content: flex-start;
   }
 }
 
@@ -760,15 +954,26 @@
 
   .view-toggle button span,
   .focus-action span,
-  .reading-action span {
+  .reading-action span,
+  .document-action span {
     display: none;
   }
 
   .focus-action,
-  .reading-action {
+  .reading-action,
+  .document-action {
     width: 32px;
     height: 32px;
     padding: 0;
+  }
+
+  .download-action {
+    display: none !important;
+  }
+
+  .disk-conflict {
+    margin-right: 16px;
+    margin-left: 16px;
   }
 
   .editor-workspace {

@@ -28,6 +28,31 @@ test('presents local Markdown import as an explicit source action', async ({
   ).toBeVisible();
 });
 
+test('keeps recent file metadata after reload without restoring its contents', async ({
+  page,
+}) => {
+  await page.locator('input[type="file"]:not([multiple])').setInputFiles({
+    name: 'private.md',
+    mimeType: 'text/markdown',
+    buffer: Buffer.from('# Secret document'),
+  });
+  await expect(page.getByRole('heading', { name: 'Secret document' })).toBeVisible();
+  await page.getByRole('button', { name: 'Return to start' }).click();
+  await expect(
+    page.getByRole('button', { name: 'private.md, Locate to reopen' })
+  ).toBeVisible();
+
+  await page.reload();
+  await expect(
+    page.getByRole('button', { name: 'private.md, Locate to reopen' })
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Secret document' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Clear history' }).click();
+  await expect(page.getByRole('heading', { name: 'Recent documents' })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Recent documents' })).toHaveCount(0);
+});
+
 for (const viewport of [
   { name: 'desktop', width: 1280, height: 800 },
   { name: 'tablet', width: 768, height: 900 },

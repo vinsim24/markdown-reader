@@ -12,6 +12,7 @@ import { useReaderUi } from '../hooks/useReaderUi';
 import { useReadingPreferences } from '../hooks/useReadingPreferences';
 import { extractHeadings } from '../lib/headings';
 import { fetchRemoteMarkdown } from '../lib/remoteMarkdown';
+import type { RecentDocument } from '../lib/recentDocuments';
 
 export default function ReaderPage() {
   const ui = useReaderUi();
@@ -59,6 +60,7 @@ export default function ReaderPage() {
       markdown: cheatSheetMarkdown,
       sourceKey: 'bundled:markdown-cheat-sheet',
       title: 'Markdown Cheat Sheet.md',
+      sourceType: 'bundled',
     });
   };
   const openObsidianGuide = () => {
@@ -67,6 +69,7 @@ export default function ReaderPage() {
       markdown: obsidianCheatSheetMarkdown,
       sourceKey: 'bundled:obsidian-markdown-guide',
       title: 'Obsidian Markdown Guide.md',
+      sourceType: 'bundled',
     });
   };
   const openMarkmapExamples = () => {
@@ -76,6 +79,7 @@ export default function ReaderPage() {
       sourceKey: 'bundled:markmap-examples',
       title: 'Markmap Examples.md',
       viewMode: 'mindmap',
+      sourceType: 'bundled',
     });
     ui.setSearchOpen(false);
   };
@@ -86,8 +90,20 @@ export default function ReaderPage() {
       markdown: document.markdown,
       sourceKey: `remote:${document.sourceUrl}`,
       title: document.title,
+      sourceType: 'remote',
     });
     ui.setUrlImportOpen(false);
+  };
+  const openRecent = async (recent: RecentDocument) => {
+    if (await sessions.openRecentDocument(recent)) return;
+    if (recent.sourceType === 'remote' && recent.sourceUrl) {
+      await importFromUrl(recent.sourceUrl);
+      return;
+    }
+    if (recent.id === 'bundled:markdown-cheat-sheet') openCheatSheet();
+    else if (recent.id === 'bundled:obsidian-markdown-guide') openObsidianGuide();
+    else if (recent.id === 'bundled:markmap-examples') openMarkmapExamples();
+    else sessions.openFilePicker();
   };
 
   return (
@@ -115,6 +131,7 @@ export default function ReaderPage() {
           sessions.activateFolder(sessions.workspaceFromFileList(files))
         }
         onOpenFile={sessions.openFile}
+        onOpenFilePicker={sessions.openFilePicker}
         onOpenFolder={sessions.openFolder}
         onOpenNav={() => {
           ui.setNav(true);
@@ -131,7 +148,7 @@ export default function ReaderPage() {
         <DocumentTabs
           activeId={sessions.activeDocument.id}
           onClose={sessions.closeDocumentTab}
-          onOpen={() => sessions.input.current?.click()}
+          onOpen={sessions.openFilePicker}
           onSelect={sessions.selectDocumentTab}
           tabs={sessions.documents.tabs}
         />
@@ -143,6 +160,8 @@ export default function ReaderPage() {
         headings={headings}
         linkNotice={ui.linkNotice}
         navOpen={ui.nav}
+        recentDocuments={sessions.recentDocuments}
+        onClearRecent={sessions.clearRecent}
         onDismissNotice={ui.dismissLinkNotice}
         onEditorChange={sessions.updateEditorDocument}
         onEditorScroll={sessions.updateEditorScroll}
@@ -158,15 +177,25 @@ export default function ReaderPage() {
           setActiveHeading(id);
           ui.setNav(false);
         }}
-        onOpenFile={() => sessions.input.current?.click()}
+        onOpenFile={sessions.openFilePicker}
         onOpenCheatSheet={openCheatSheet}
         onOpenObsidianGuide={openObsidianGuide}
         onOpenMarkmapExamples={openMarkmapExamples}
+        onOpenRecent={(entry) => void openRecent(entry)}
+        onRemoveRecent={sessions.removeRecentDocument}
+        rememberFileAccess={sessions.rememberFileAccess}
+        onRememberFileAccess={sessions.setRememberFileAccess}
         onOpenFolder={sessions.openFolder}
         onOpenFolderFile={sessions.openFolderFile}
         onOpenSettings={ui.openSettings}
         onOpenUrlImport={ui.openUrlImport}
         onRelativeLink={sessions.openRelativeLink}
+        onRefresh={sessions.refreshActiveDocument}
+        onReloadExternal={sessions.reloadExternalDocument}
+        onKeepEdited={sessions.keepEditedDocument}
+        onSave={sessions.saveActiveDocument}
+        onSaveAs={sessions.saveAsActiveDocument}
+        onDownload={sessions.downloadActiveDocument}
         onSetNav={ui.setNav}
         onSetSearch={ui.setSearch}
         onSetViewMode={(viewMode) => {

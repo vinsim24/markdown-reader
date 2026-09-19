@@ -24,7 +24,7 @@
 - Avoid broad macOS or Windows filesystem permissions.
 - Docker must not mount or scan the user’s home directory.
 - Drag-and-drop should use browser file access.
-- Folder access is session-only; filesystem handles are not persisted.
+- Folder access is session-only by default. Capable browsers may retain explicitly selected handles only when the user enables remembered file access; every reuse validates permission.
 
 ## MVP Functionality
 
@@ -131,7 +131,9 @@ The approved sequence is maintained in [`POST_MVP_IMPLEMENTATION_PLAN.md`](POST_
 
 The ordered milestones, editor security boundaries, and verification criteria are defined in [`INK_AND_PAPER_REVAMP_SPEC.md`](INK_AND_PAPER_REVAMP_SPEC.md). The editor foundation and responsive Split workflow are complete; safe save/download and formatting tools remain later milestones.
 
-Longer-term items include Tauri desktop packaging, persistent folder permissions, cloud synchronization, bookmarks/history, broader document export, large-library indexing, and custom theme preset management.
+Longer-term items include Tauri desktop packaging, cloud synchronization, bookmarks, broader document export, large-library indexing, and custom theme preset management.
+
+The implemented browser behavior for external file changes, capability-aware Save, and privacy-preserving recent documents is defined in [`FILE_SYNC_AND_HISTORY_SPEC.md`](FILE_SYNC_AND_HISTORY_SPEC.md). Permission-validated handle persistence is opt-in on capable browsers; metadata-only history and cross-browser fallbacks remain available without it.
 
 Remote URL imports are an explicit user-directed download, not an upload. They must use direct browser fetching without a server proxy, remain subject to browser CORS controls, pass through the existing untrusted-Markdown sanitization pipeline, and never weaken local file-access boundaries.
 

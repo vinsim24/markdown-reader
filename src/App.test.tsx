@@ -387,6 +387,177 @@ describe('critical reader interactions', () => {
     ).not.toBeNull();
   });
 
+  it('shows locally opened files in recent documents without storing content', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    const picker = container.querySelector<HTMLInputElement>(
+      'input[type="file"]:not([multiple])'
+    );
+    if (!picker) throw new Error('File picker was not rendered.');
+    fireEvent.change(picker, {
+      target: { files: [new File(['# Private contents'], 'recent.md')] },
+    });
+    await screen.findByRole('heading', { name: 'Private contents' });
+    await user.click(screen.getByRole('button', { name: 'Return to start' }));
+
+    expect(
+      screen.getByRole('heading', { name: 'Recent documents' })
+    ).not.toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'recent.md, Locate to reopen' })
+    ).not.toBeNull();
+    expect(screen.queryByText('Private contents')).toBeNull();
+    await user.click(
+      screen.getByRole('button', { name: 'Remove recent.md from history' })
+    );
+    expect(
+      screen.queryByRole('button', { name: 'recent.md, Locate to reopen' })
+    ).toBeNull();
+  });
+
+  it('saves an edited handle-backed document to its opened file', async () => {
+    const user = userEvent.setup();
+    let diskText = '# Original';
+    let modified = 100;
+    const write = vi.fn(async (value: string) => {
+      diskText = value;
+      modified += 1;
+    });
+    const handle = {
+      kind: 'file' as const,
+      name: 'writable.md',
+      getFile: async () =>
+        new File([diskText], 'writable.md', { lastModified: modified }),
+      queryPermission: async () => 'granted' as const,
+      requestPermission: async () => 'granted' as const,
+      createWritable: async () => ({ close: async () => undefined, write }),
+    };
+    vi.stubGlobal('showOpenFilePicker', vi.fn().mockResolvedValue([handle]));
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Import Markdown' }));
+    await screen.findByRole('heading', { name: 'Original' });
+    await user.click(screen.getByRole('button', { name: 'Write' }));
+    const editor = await screen.findByRole('textbox', {
+      name: 'Markdown editor for writable.md',
+    });
+    const editorView = EditorView.findFromDOM(editor);
+    if (!editorView) throw new Error('CodeMirror editor was not initialized.');
+    act(() => editorView.dispatch({ changes: { from: 0, to: diskText.length, insert: '# Saved' } }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(write).toHaveBeenCalledWith('# Saved'));
+    expect(diskText).toBe('# Saved');
+    expect(screen.queryByText('Unsaved changes')).toBeNull();
+  });
+
+  it('protects dirty edits when the opened file changes on disk', async () => {
+    const user = userEvent.setup();
+    let diskText = '# Original';
+    let modified = 100;
+    const handle = {
+      kind: 'file' as const,
+      name: 'watched.md',
+      getFile: async () =>
+        new File([diskText], 'watched.md', { lastModified: modified }),
+      queryPermission: async () => 'granted' as const,
+      requestPermission: async () => 'granted' as const,
+      createWritable: async () => ({ close: async () => undefined, write: async () => undefined }),
+    };
+    vi.stubGlobal('showOpenFilePicker', vi.fn().mockResolvedValue([handle]));
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Import Markdown' }));
+    await user.click(screen.getByRole('button', { name: 'Write' }));
+    const editor = await screen.findByRole('textbox', {
+      name: 'Markdown editor for watched.md',
+    });
+    const editorView = EditorView.findFromDOM(editor);
+    if (!editorView) throw new Error('CodeMirror editor was not initialized.');
+    act(() => editorView.dispatch({ changes: { from: 0, to: diskText.length, insert: '# My edit' } }));
+    diskText = '# External edit';
+    modified += 1;
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'Changed on disk'
+    );
+    await user.click(screen.getByRole('button', { name: 'Keep my edits' }));
+    await user.click(screen.getByRole('button', { name: 'Preview' }));
+    expect(await screen.findByRole('heading', { name: 'My edit' })).not.toBeNull();
+  });
+
+  it('refreshes a clean handle-backed document after its disk copy changes', async () => {
+    const user = userEvent.setup();
+    let diskText = '# Original';
+    let modified = 100;
+    const handle = {
+      kind: 'file' as const,
+      name: 'refresh.md',
+      getFile: async () =>
+        new File([diskText], 'refresh.md', { lastModified: modified }),
+      queryPermission: async () => 'granted' as const,
+    };
+    vi.stubGlobal('showOpenFilePicker', vi.fn().mockResolvedValue([handle]));
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Import Markdown' }));
+    await screen.findByRole('heading', { name: 'Original' });
+    diskText = '# Updated externally';
+    modified += 1;
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Updated externally' })
+    ).not.toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('requires confirmation before Save overwrites a changed disk copy', async () => {
+    const user = userEvent.setup();
+    let diskText = '# Original';
+    let modified = 100;
+    const write = vi.fn(async (value: string) => {
+      diskText = value;
+      modified += 1;
+    });
+    const handle = {
+      kind: 'file' as const,
+      name: 'conflict.md',
+      getFile: async () =>
+        new File([diskText], 'conflict.md', { lastModified: modified }),
+      queryPermission: async () => 'granted' as const,
+      createWritable: async () => ({ close: async () => undefined, write }),
+    };
+    vi.stubGlobal('showOpenFilePicker', vi.fn().mockResolvedValue([handle]));
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Import Markdown' }));
+    await screen.findByRole('heading', { name: 'Original' });
+    await user.click(screen.getByRole('button', { name: 'Write' }));
+    const editor = await screen.findByRole('textbox', {
+      name: 'Markdown editor for conflict.md',
+    });
+    const editorView = EditorView.findFromDOM(editor);
+    if (!editorView) throw new Error('CodeMirror editor was not initialized.');
+    act(() =>
+      editorView.dispatch({
+        changes: { from: 0, to: diskText.length, insert: '# My draft' },
+      })
+    );
+    diskText = '# Disk changed';
+    modified += 1;
+    const confirm = vi.spyOn(window, 'confirm').mockReset().mockReturnValue(false);
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(confirm).toHaveBeenCalledTimes(1));
+    expect(write).not.toHaveBeenCalled();
+    expect(diskText).toBe('# Disk changed');
+    expect(
+      screen.getByRole('button', { name: /conflict\.md.*Unsaved changes/ })
+    ).not.toBeNull();
+  });
+
   it('renders math and allowed inline HTML while removing unsafe HTML', async () => {
     const { container } = render(<App />);
     const picker = container.querySelector<HTMLInputElement>(
