@@ -2,6 +2,15 @@
 
 Markdown Reader follows [Semantic Versioning](https://semver.org/). This file records user-visible changes beginning with the editor milestone.
 
+## [0.4.0] - 2026-09-19
+
+### Added
+
+- Direct Save for explicitly granted writable files, with Save As and Download fallbacks for other sources.
+- External-change checks that refresh clean documents and protect unsaved drafts from disk conflicts.
+- A private recent-documents list with optional remembered file access and permission checks before reopening.
+- Automated coverage for save conflicts, clean refresh, recent history, and responsive browser behavior.
+
 ## [0.3.2] - 2026-08-24
 
 ### Changed

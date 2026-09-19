@@ -346,7 +346,7 @@ describe('critical reader interactions', () => {
       name: 'Markdown editor for draft.md',
     });
     const splitEditorView = EditorView.findFromDOM(splitEditor);
-    expect(splitEditorView?.scrollDOM.scrollTop).toBe(72);
+    await waitFor(() => expect(splitEditorView?.scrollDOM.scrollTop).toBe(72));
     const resizeHandle = screen.getAllByRole('separator', {
       name: 'Resize split panes',
     })[0];

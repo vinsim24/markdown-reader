@@ -36,15 +36,15 @@ docker run --detach --rm --name markdown-reader -p 8787:8080 vinsim24/markdown-r
 For reproducible deployments, pin the current immutable numbered release:
 
 ```bash
-docker pull vinsim24/markdown-reader:0.3.2
-docker run --detach --rm --name markdown-reader -p 8787:8080 vinsim24/markdown-reader:0.3.2
+docker pull vinsim24/markdown-reader:0.4.0
+docker run --detach --rm --name markdown-reader -p 8787:8080 vinsim24/markdown-reader:0.4.0
 ```
 
-The current release is `0.3.2`. Numbered release tags are immutable; `latest` is intentionally mutable so each stable release can advance it.
+The current release is `0.4.0`. Numbered release tags are immutable; `latest` is intentionally mutable so each stable release can advance it.
 
 Published releases contain native `linux/amd64` and `linux/arm64` images. Docker automatically selects the matching image, including ARM64 on Apple Silicon, without emulation.
 
-Release images receive an immutable semantic version tag, a unique Git commit tag, and the mutable `latest` tag. The source commit also receives an annotated Git tag such as `v0.3.2`. Pull requests validate both architectures, and pushing the version tag publishes the release through `.github/workflows/docker.yml`.
+Release images receive an immutable semantic version tag, a unique Git commit tag, and the mutable `latest` tag. The source commit also receives an annotated Git tag such as `v0.4.0`. Pull requests validate both architectures, and pushing the version tag publishes the release through `.github/workflows/docker.yml`.
 
 The workflow requires the `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository secrets. Both are passed only to Docker's login action during tagged releases. The workflow uses Node 24-based Docker actions and publishes provenance and an SBOM with each image.
 
