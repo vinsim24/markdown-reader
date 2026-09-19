@@ -1,6 +1,6 @@
 # Markdown Reader
 
-[![Version](https://img.shields.io/badge/version-0.3.2-315f8c)](package.json)
+[![Version](https://img.shields.io/badge/version-0.4.0-315f8c)](package.json)
 [![CI](https://github.com/vinsim24/markdown-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/vinsim24/markdown-reader/actions/workflows/ci.yml)
 [![Docker](https://github.com/vinsim24/markdown-reader/actions/workflows/docker.yml/badge.svg)](https://github.com/vinsim24/markdown-reader/actions/workflows/docker.yml)
 [![Node.js 24](https://img.shields.io/badge/Node.js-24-3c873a?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
@@ -20,6 +20,8 @@ A private, responsive Markdown reader for comfortable local reading. The Ink & P
 - Switch any document to an interactive Markmap mind-map view with pan, zoom, folding, full-screen viewing, and PNG/SVG export.
 - Move between Preview, Write, responsive Split, and Mind map modes. The lazy-loaded CodeMirror 6 editor updates the sanitized preview live, the keyboard-accessible Split divider remembers its ratio per tab, and draft, selection, and scroll positions are preserved.
 - See unsaved markers in tabs and receive a confirmation before closing or replacing a changed session draft.
+- Save to explicitly granted writable files, or use Save As and Download for other sources. Clean files refresh after disk changes, while unsaved drafts are protected from conflicts.
+- Reopen recent documents from metadata-only history, with optional remembered file handles and permission checks.
 - Open bundled Markdown, Obsidian, and Markmap examples without uploading anything.
 - Search with match highlighting, current-section navigation, and Focus mode.
 - Persist validated reading preferences locally: six themes, eight font options, size, width, line height, custom colors, and code theme.
@@ -27,7 +29,7 @@ A private, responsive Markdown reader for comfortable local reading. The Ink & P
 
 ## Privacy and folder permissions
 
-Markdown contents never leave the browser. File and folder access begins only after an explicit picker action or file drop. Folder handles, absolute paths, and document contents are not persisted. Folder permission lasts only for the current browser session, and Docker does not mount or scan the user’s home directory.
+Markdown contents never leave the browser. File and folder access begins only after an explicit picker action or file drop. Document contents, drafts, and absolute paths are not persisted. Recent-document metadata is stored locally; file handles are stored only when Remember file access is enabled. Reopening a stored handle checks browser permission again. Docker does not mount or scan the user's home directory.
 
 Chrome and Edge are the primary desktop browsers because they support `showDirectoryPicker()`. Other modern browsers receive a directory-input fallback. Native permission prompts are intentionally not automated.
 
@@ -38,10 +40,10 @@ Inline and display LaTeX use `$…$` and `$$…$$` syntax and render locally wit
 Known limitations:
 
 - Drag-and-drop supports individual Markdown files, not folders.
-- Folder access must be granted again after reloading the page.
+- Folder navigation is session-only; opening the folder again after a page reload requires a new selection.
 - Directory-input fallback behavior varies slightly by browser.
-- Editor drafts are session-only. Save, Save As, and Download are planned next; closing or reloading discards confirmed changes.
-- Tauri packaging, cloud sync, bookmarks, history, and broader export are post-MVP work.
+- Editor drafts are session-only. Save requires an explicitly granted writable file handle; Save As and Download are available as fallbacks.
+- Tauri packaging, cloud sync, bookmarks, and broader export are post-MVP work.
 
 ## Development
 
@@ -79,8 +81,8 @@ docker run --rm -p 8787:8080 vinsim24/markdown-reader:latest
 For a reproducible deployment, pin the current numbered release:
 
 ```bash
-docker pull vinsim24/markdown-reader:0.3.2
-docker run --rm -p 8787:8080 vinsim24/markdown-reader:0.3.2
+docker pull vinsim24/markdown-reader:0.4.0
+docker run --rm -p 8787:8080 vinsim24/markdown-reader:0.4.0
 ```
 
 Or build it from source:
