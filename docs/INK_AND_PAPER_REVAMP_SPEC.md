@@ -191,7 +191,7 @@ Keep milestone branches after their pull requests are merged so the workstream h
 - Rich-text or WYSIWYG editing
 - Collaborative editing, accounts, or cloud synchronization
 - Writing back to remote URLs
-- Silent autosave or persistent filesystem handles
+- Silent autosave
 - Custom CSS and arbitrary theme scripting
 - PDF, Word, or publishing export
 - A plugin marketplace

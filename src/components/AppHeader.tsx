@@ -21,6 +21,7 @@ interface AppHeaderProps {
   onOpenUrlImport: (event: MouseEvent<HTMLButtonElement>) => void;
   onFolderFiles: (files: FileList) => void;
   onOpenFile: (file: File) => void;
+  onOpenFilePicker?: () => void;
   onOpenFolder: () => void;
   onOpenNav: () => void;
   onOpenSettings: (event: MouseEvent<HTMLButtonElement>) => void;
@@ -44,6 +45,7 @@ export default function AppHeader({
   onOpenUrlImport,
   onFolderFiles,
   onOpenFile,
+  onOpenFilePicker,
   onOpenFolder,
   onOpenNav,
   onOpenSettings,
@@ -82,7 +84,10 @@ export default function AppHeader({
             <button
               type="button"
               className="toolbar-button header-primary-action"
-              onClick={() => fileInput.current?.click()}
+              onClick={() => {
+                if (onOpenFilePicker) onOpenFilePicker();
+                else fileInput.current?.click();
+              }}
             >
               <FileArrowUp size={16} weight="bold" aria-hidden="true" />
               Import Markdown

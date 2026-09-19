@@ -51,10 +51,14 @@ The product and security review for editing is complete. The authoritative scope
 9. Theme refinement
 10. Editor foundation with CodeMirror 6 — Complete
 11. Responsive Split view and live preview — Complete
-12. Capability-aware Save, Save As, Download, and dirty-state safeguards
+12. Capability-aware Save, Save As, Download, and dirty-state safeguards — Complete
 13. Editor formatting toolbar and accessibility polish
 
-Implement and verify one priority at a time. The editor foundation and responsive Split workflow are complete on the `feature/editor-foundation` workstream; safe save and toolbar work remain separate milestones. Editing remains session-only by default, never uploads content, never silently overwrites input-selected files, and does not persist filesystem handles.
+Implement and verify one priority at a time. The editor foundation and responsive Split workflow are complete on the `feature/editor-foundation` workstream. Safe Save, Save As, Download, external-change protection, and permission-aware filesystem handles are complete on the `spec/file-sync-history` workstream; toolbar work remains a separate milestone. Editing never uploads content and never silently overwrites input-selected files.
+
+## File sync and recent documents — Complete
+
+External-change detection, conflict handling, recent history, and opt-in persistent-handle behavior are specified in [`FILE_SYNC_AND_HISTORY_SPEC.md`](FILE_SYNC_AND_HISTORY_SPEC.md). Save and refresh share one accepted disk-version authority, and recent history never stores Markdown content or drafts.
 
 ## Verification gates
 

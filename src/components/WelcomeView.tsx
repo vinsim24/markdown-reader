@@ -5,25 +5,39 @@ import { FolderOpenIcon as FolderOpen } from '@phosphor-icons/react/FolderOpen';
 import { GlobeHemisphereWestIcon as GlobeHemisphereWest } from '@phosphor-icons/react/GlobeHemisphereWest';
 import { TreeStructureIcon as TreeStructure } from '@phosphor-icons/react/TreeStructure';
 import type { MouseEvent } from 'react';
+import type { RecentDocument } from '../lib/recentDocuments';
 import BrandMark from './BrandMark';
+import RecentDocuments from './RecentDocuments';
 
 interface WelcomeViewProps {
   folderLoading: boolean;
+  recentDocuments: RecentDocument[];
+  onClearRecent: () => void;
   onOpenCheatSheet: () => void;
   onOpenFile: () => void;
   onOpenFolder: () => void;
   onOpenObsidianGuide: () => void;
   onOpenMarkmapExamples: () => void;
+  onOpenRecent: (entry: RecentDocument) => void;
+  onRemoveRecent: (id: string) => void;
+  rememberFileAccess: boolean;
+  onRememberFileAccess: (enabled: boolean) => void;
   onOpenUrlImport: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 
 export default function WelcomeView({
   folderLoading,
+  recentDocuments,
+  onClearRecent,
   onOpenCheatSheet,
   onOpenFile,
   onOpenFolder,
   onOpenObsidianGuide,
   onOpenMarkmapExamples,
+  onOpenRecent,
+  onRemoveRecent,
+  rememberFileAccess,
+  onRememberFileAccess,
   onOpenUrlImport,
 }: WelcomeViewProps) {
   return (
@@ -114,6 +128,14 @@ export default function WelcomeView({
           <ArrowRight size={16} aria-hidden="true" />
         </button>
       </aside>
+      <RecentDocuments
+        entries={recentDocuments}
+        onClear={onClearRecent}
+        onOpen={onOpenRecent}
+        onRemove={onRemoveRecent}
+        rememberFileAccess={rememberFileAccess}
+        onRememberFileAccess={onRememberFileAccess}
+      />
     </section>
   );
 }

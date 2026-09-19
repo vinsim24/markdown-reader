@@ -4,6 +4,9 @@ import { CornersOutIcon as CornersOut } from '@phosphor-icons/react/CornersOut';
 import { PencilSimpleLineIcon as PencilSimpleLine } from '@phosphor-icons/react/PencilSimpleLine';
 import { TextAaIcon as TextAa } from '@phosphor-icons/react/TextAa';
 import { TreeStructureIcon as TreeStructure } from '@phosphor-icons/react/TreeStructure';
+import { ArrowClockwiseIcon as ArrowClockwise } from '@phosphor-icons/react/ArrowClockwise';
+import { DownloadSimpleIcon as DownloadSimple } from '@phosphor-icons/react/DownloadSimple';
+import { FloppyDiskIcon as FloppyDisk } from '@phosphor-icons/react/FloppyDisk';
 import type { MouseEvent } from 'react';
 import {
   type DocumentTab,
@@ -12,6 +15,7 @@ import {
 } from '../lib/documentTabs';
 import type { DocumentHeading } from '../lib/headings';
 import type { Theme } from '../lib/preferences';
+import type { RecentDocument } from '../lib/recentDocuments';
 import DocumentEditorWorkspace from './DocumentEditorWorkspace';
 import MarkdownDocument from './MarkdownDocument';
 import MarkmapView from './MarkmapView';
@@ -26,6 +30,8 @@ interface ReaderWorkspaceProps {
   headings: DocumentHeading[];
   linkNotice: string;
   navOpen: boolean;
+  recentDocuments: RecentDocument[];
+  onClearRecent: () => void;
   onDismissNotice: () => void;
   onEditorChange: (
     id: string,
@@ -42,6 +48,10 @@ interface ReaderWorkspaceProps {
   onOpenFolder: () => void;
   onOpenObsidianGuide: () => void;
   onOpenMarkmapExamples: () => void;
+  onOpenRecent: (entry: RecentDocument) => void;
+  onRemoveRecent: (id: string) => void;
+  rememberFileAccess: boolean;
+  onRememberFileAccess: (enabled: boolean) => void;
   onOpenFolderFile: (
     path: string,
     anchor?: string,
@@ -50,6 +60,12 @@ interface ReaderWorkspaceProps {
   onOpenSettings: (event: MouseEvent<HTMLButtonElement>) => void;
   onOpenUrlImport: (event: MouseEvent<HTMLButtonElement>) => void;
   onRelativeLink: (href: string) => Promise<void>;
+  onRefresh: () => void;
+  onReloadExternal: () => void;
+  onKeepEdited: () => void;
+  onSave: () => void;
+  onSaveAs: () => void;
+  onDownload: () => void;
   onSetNav: (open: boolean) => void;
   onSetSearch: (search: string) => void;
   readingMinutes: number;
@@ -73,6 +89,8 @@ export default function ReaderWorkspace({
   headings,
   linkNotice,
   navOpen,
+  recentDocuments,
+  onClearRecent,
   onDismissNotice,
   onEditorChange,
   onEditorScroll,
@@ -85,10 +103,20 @@ export default function ReaderWorkspace({
   onOpenFolder,
   onOpenObsidianGuide,
   onOpenMarkmapExamples,
+  onOpenRecent,
+  onRemoveRecent,
+  rememberFileAccess,
+  onRememberFileAccess,
   onOpenFolderFile,
   onOpenSettings,
   onOpenUrlImport,
   onRelativeLink,
+  onRefresh,
+  onReloadExternal,
+  onKeepEdited,
+  onSave,
+  onSaveAs,
+  onDownload,
   onSetNav,
   onSetSearch,
   readingMinutes,
@@ -133,6 +161,33 @@ export default function ReaderWorkspace({
                 <strong>{activeDocument.title}</strong>
               </div>
               <div className="reader-actions">
+                {activeDocument.fileHandle && (
+                  <button
+                    type="button"
+                    className="subtle-button document-action"
+                    onClick={onRefresh}
+                  >
+                    <ArrowClockwise size={14} aria-hidden="true" />
+                    <span>Refresh</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="subtle-button document-action"
+                  onClick={onSave}
+                  title={activeDocument.fileHandle?.createWritable ? 'Save changes to the opened file' : 'Save a new copy'}
+                >
+                  <FloppyDisk size={14} aria-hidden="true" />
+                  <span>{activeDocument.fileHandle?.createWritable ? 'Save' : 'Save as'}</span>
+                </button>
+                <button
+                  type="button"
+                  className="subtle-button document-action download-action"
+                  onClick={onDownload}
+                >
+                  <DownloadSimple size={14} aria-hidden="true" />
+                  <span>Download</span>
+                </button>
                 <fieldset className="view-toggle" aria-label="Document view">
                   <button
                     type="button"
@@ -208,6 +263,19 @@ export default function ReaderWorkspace({
               </div>
             )}
             <StatusNotice message={linkNotice} onDismiss={onDismissNotice} />
+            {activeDocument.externalMarkdown !== undefined && (
+              <div className="disk-conflict" role="alert">
+                <div>
+                  <strong>Changed on disk</strong>
+                  <span>The open file changed while this tab has unsaved edits.</span>
+                </div>
+                <div className="disk-conflict-actions">
+                  <button type="button" onClick={onReloadExternal}>Reload from disk</button>
+                  <button type="button" onClick={onKeepEdited}>Keep my edits</button>
+                  <button type="button" onClick={onSaveAs}>Save as a copy</button>
+                </div>
+              </div>
+            )}
             {viewMode === 'reader' ? (
               <MarkdownDocument
                 activePath={activeDocument.activePath}
@@ -248,11 +316,17 @@ export default function ReaderWorkspace({
             <StatusNotice message={linkNotice} onDismiss={onDismissNotice} />
             <WelcomeView
               folderLoading={folderLoading}
+              recentDocuments={recentDocuments}
+              onClearRecent={onClearRecent}
               onOpenCheatSheet={onOpenCheatSheet}
               onOpenFile={onOpenFile}
               onOpenFolder={onOpenFolder}
               onOpenObsidianGuide={onOpenObsidianGuide}
               onOpenMarkmapExamples={onOpenMarkmapExamples}
+              onOpenRecent={onOpenRecent}
+              onRemoveRecent={onRemoveRecent}
+              rememberFileAccess={rememberFileAccess}
+              onRememberFileAccess={onRememberFileAccess}
               onOpenUrlImport={onOpenUrlImport}
             />
           </>

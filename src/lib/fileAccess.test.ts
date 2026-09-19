@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { type DirectoryHandleLike, scanDirectory } from './fileAccess';
+import {
+  fileVersion,
+  type DirectoryHandleLike,
+  sameFileVersion,
+  scanDirectory,
+} from './fileAccess';
 
 function directory(
   name: string,
@@ -38,5 +43,19 @@ describe('scanDirectory', () => {
       'README.md',
     ]);
     expect(workspace.files.get('photo.svg')?.name).toBe('photo.svg');
+    expect(workspace.handles.get('README.md')?.name).toBe('README.md');
+  });
+
+  it('compares the accepted size and modification time for disk refresh checks', () => {
+    const original = new File(['# One'], 'note.md', { lastModified: 100 });
+    const unchanged = new File(['# Two'], 'note.md', { lastModified: 100 });
+    const changed = new File(['# Changed'], 'note.md', { lastModified: 200 });
+
+    expect(sameFileVersion(fileVersion(original), fileVersion(unchanged))).toBe(
+      true
+    );
+    expect(sameFileVersion(fileVersion(original), fileVersion(changed))).toBe(
+      false
+    );
   });
 });
